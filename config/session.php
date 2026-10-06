@@ -7,7 +7,7 @@ return [
     'encrypt' => false,
     'files' => storage_path('framework/sessions'),
     'lottery' => [2, 100],
-    'cookie' => 'cetakin_cloud_session',
+    'cookie' => env('SESSION_COOKIE', 'cetakin_cloud_session'),
     'path' => '/',
     'domain' => null,
     'secure' => env('SESSION_SECURE_COOKIE'),
