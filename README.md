@@ -2,11 +2,11 @@
 
 Cetakin Cloud is a production-oriented software engineering portfolio project for managing Cetakin, a real 3D printing business.
 
-Planning and architecture have been approved for implementation (G0). This checkout implements **CET-001** bootstrap plus **CET-002** local Windows/PostgreSQL infrastructure: one Laravel application serving a neutral React/TypeScript page through Inertia, without SSR. Business decisions BD-01–17 remain gated; no customer or staff workflow is implemented.
+Planning and architecture have been approved for implementation (G0). This checkout implements **CET-001** bootstrap plus **CET-002** local Windows/PostgreSQL infrastructure and **CET-003** testing/quality gates: one Laravel application serving a neutral React/TypeScript page through Inertia, without SSR. Business decisions BD-01–17 remain gated; no customer or staff workflow is implemented.
 
 ## Windows container development
 
-Use Docker Desktop Linux containers and PowerShell; host PHP/Composer/Node are optional. Follow [DEVELOPMENT](docs/DEVELOPMENT.md) for isolated worktree setup, locked dependency installation/build, PostgreSQL dev/test targets, safe reset and cleanup. Start with `.\scripts\dev.ps1 setup`, then `install`, `build`, and `start`. Each worktree gets its own environment, ports and runtime volumes. CET-003's PostgreSQL feature-test harness and CI are not implemented.
+Use Docker Desktop Linux containers and PowerShell; host PHP/Composer/Node are optional. Follow [DEVELOPMENT](docs/DEVELOPMENT.md) for isolated worktree setup, locked dependency installation/build, PostgreSQL dev/test targets, safe reset and cleanup. Start with `.\scripts\dev.ps1 setup`, then `install`, `build`, and `start`. Each worktree gets its own environment, ports and runtime volumes. Run `.\scripts\quality.ps1` before a PR; it checks PostgreSQL foundation tests, components, formatting, static/types, build and dependency audits. The GitHub PR/main workflow uses the same gate; no deployment is configured.
 
 ## CET-001 setup
 

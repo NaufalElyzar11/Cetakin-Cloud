@@ -3,10 +3,16 @@
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/12.5/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true"
-         cacheDirectory=".phpunit.cache">
+         cacheDirectory=".phpunit.cache"
+         failOnEmptyTestSuite="true"
+         failOnIncomplete="true"
+         failOnSkipped="true">
     <testsuites>
         <testsuite name="Bootstrap smoke">
             <directory>tests/Bootstrap</directory>
+        </testsuite>
+        <testsuite name="PostgreSQL foundation">
+            <directory>tests/Database</directory>
         </testsuite>
     </testsuites>
     <php>

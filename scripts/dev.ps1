@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('setup', 'config', 'start', 'stop', 'status', 'install', 'build', 'test', 'migrate', 'db-check', 'test-db-check', 'test-reset', 'config-clear', 'logs', 'remove')]
+    [ValidateSet('setup', 'config', 'start', 'stop', 'status', 'install', 'build', 'test', 'quality', 'migrate', 'db-check', 'test-db-check', 'test-reset', 'config-clear', 'logs', 'remove')]
     [string] $Action = 'status',
     [int] $AppPort = 0,
     [int] $DatabasePort = 0,
@@ -11,7 +11,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $taskRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).ProviderPath
-$taskCanonical = $taskRoot.TrimEnd('\', '/').ToLowerInvariant()
+$taskWindows = [Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT
+$taskCanonical = $taskRoot.TrimEnd('\', '/')
+if ($taskWindows) { $taskCanonical = $taskCanonical.ToLowerInvariant() }
 $taskHash = [Security.Cryptography.SHA256]::Create()
 $taskId = ([BitConverter]::ToString($taskHash.ComputeHash([Text.Encoding]::UTF8.GetBytes($taskCanonical)))).Replace('-', '').ToLowerInvariant().Substring(0, 12)
 $taskProject = "cetakin-$taskId"
@@ -20,10 +22,12 @@ $taskComposePath = Join-Path $taskRoot 'compose.yaml'
 Get-Command docker -ErrorAction Stop | Out-Null
 & docker compose version | Out-Null
 if ($LASTEXITCODE -ne 0) { throw 'Docker Compose v2 is required.' }
-if ($env:DOCKER_HOST) { throw 'Unset DOCKER_HOST. These commands require local Docker Desktop, not a remote daemon.' }
+if ($env:DOCKER_HOST) { throw 'Unset DOCKER_HOST. These commands require the local Docker daemon, not a remote endpoint.' }
 $taskDockerEndpoint = (& docker context inspect --format '{{.Endpoints.docker.Host}}' | Out-String).Trim()
-if ($LASTEXITCODE -ne 0 -or $taskDockerEndpoint -ne 'npipe:////./pipe/dockerDesktopLinuxEngine') {
-    throw 'Select the local Docker Desktop Linux context (docker context use desktop-linux). Remote/test-production endpoints are refused.'
+$taskExpectedEndpoint = 'unix:///var/run/docker.sock'
+if ($taskWindows) { $taskExpectedEndpoint = 'npipe:////./pipe/dockerDesktopLinuxEngine' }
+if ($LASTEXITCODE -ne 0 -or $taskDockerEndpoint -ne $taskExpectedEndpoint) {
+    throw 'Select local Docker Desktop Linux on Windows or the local Unix Docker socket on Linux. Remote endpoints are refused.'
 }
 
 function Invoke-TaskCompose {
@@ -105,7 +109,29 @@ try {
             Invoke-TaskCompose -Arguments @('run', '--rm', '--no-deps', 'node', 'npm', 'run', 'build')
         }
         'test' {
+            Invoke-TaskCompose -Arguments (@('exec', '-T') + $taskTestEnvironment + @('app', 'php', 'scripts/dev/database.php', 'test-check'))
             Invoke-TaskCompose -Arguments (@('exec', '-T') + $taskTestEnvironment + @('app', 'composer', 'test:bootstrap'))
+            Invoke-TaskCompose -Arguments (@('exec', '-T') + $taskTestEnvironment + @('app', 'composer', 'test:postgres'))
+        }
+        'quality' {
+            # Inventory runs on the host: Windows worktree .git pointers cannot be used inside Linux containers.
+            & (Join-Path $PSScriptRoot 'check-secrets.ps1')
+            Invoke-TaskCompose -Arguments @('exec', '-T', 'app', 'composer', 'validate', '--no-check-publish')
+            Invoke-TaskCompose -Arguments @('exec', '-T', 'app', 'composer', 'check-platform-reqs')
+            Invoke-TaskCompose -Arguments @('exec', '-T', 'app', 'composer', 'lint:php')
+            Invoke-TaskCompose -Arguments @('exec', '-T', 'app', 'composer', 'format:check')
+            Invoke-TaskCompose -Arguments @('exec', '-T', 'app', 'composer', 'analyse')
+            Invoke-TaskCompose -Arguments @('run', '--rm', '--no-deps', 'node', 'npm', 'run', 'format:check')
+            Invoke-TaskCompose -Arguments @('run', '--rm', '--no-deps', 'node', 'npm', 'run', 'typecheck')
+            Invoke-TaskCompose -Arguments @('run', '--rm', '--no-deps', 'node', 'npm', 'run', 'test:components')
+            # A fresh checkout needs compiled assets before the existing HTTP/bootstrap smoke.
+            Invoke-TaskCompose -Arguments @('run', '--rm', '--no-deps', 'node', 'npm', 'run', 'build')
+            Invoke-TaskCompose -Arguments (@('exec', '-T') + $taskTestEnvironment + @('app', 'php', 'scripts/dev/database.php', 'test-check'))
+            Invoke-TaskCompose -Arguments (@('exec', '-T') + $taskTestEnvironment + @('app', 'composer', 'test:bootstrap'))
+            Invoke-TaskCompose -Arguments (@('exec', '-T') + $taskTestEnvironment + @('app', 'composer', 'test:postgres'))
+            Invoke-TaskCompose -Arguments @('exec', '-T', 'app', 'composer', 'audit', '--locked')
+            Invoke-TaskCompose -Arguments @('run', '--rm', '--no-deps', 'node', 'npm', 'audit', '--audit-level=high')
+            Write-Output 'All CET-003 quality groups passed.'
         }
         'migrate' { Invoke-TaskCompose -Arguments @('exec', '-T', 'app', 'php', 'scripts/dev/database.php', 'migrate-dev') }
         'db-check' { Invoke-TaskCompose -Arguments @('exec', '-T', 'app', 'php', 'scripts/dev/database.php', 'dev-check') }
