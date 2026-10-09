@@ -1,0 +1,33 @@
+name: Quality
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Check out the event commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1; official Node 24 action
+        with:
+          persist-credentials: false
+      - name: Create this checkout's isolated local environment
+        run: ./scripts/dev.ps1 setup
+      - name: Install committed dependency locks
+        run: ./scripts/dev.ps1 install
+      - name: Start local application and PostgreSQL
+        run: ./scripts/dev.ps1 start
+      - name: Run the same fail-closed quality gate
+        run: ./scripts/quality.ps1
+      - name: Remove only this job's local resources
+        if: always()
+        run: ./scripts/dev.ps1 remove -ConfirmRemoveVolumes

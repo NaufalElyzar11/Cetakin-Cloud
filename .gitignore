@@ -1,6 +1,7 @@
 /.env
 /.env.*
 !/.env.example
+!/.env.docker.example
 /vendor/
 /node_modules/
 /public/build/
@@ -8,6 +9,7 @@
 /public/storage
 /.phpunit.cache/
 /.phpunit.result.cache
+/.pint.cache
 /npm-debug.log*
 /composer.phar
 /.idea/
@@ -17,3 +19,10 @@
 *.key
 /storage/app/**
 /storage/logs/*.log
+*.dump
+*.backup
+*.sql
+*.sql.gz
+/database/*.sqlite*
+/database/data/
+/postgres-data/

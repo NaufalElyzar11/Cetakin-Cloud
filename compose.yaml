@@ -1,0 +1,88 @@
+name: ${DEV_PROJECT:?Run scripts/dev.ps1 setup}
+
+services:
+  app:
+    image: ${DEV_PROJECT:?}-php:8.3.35
+    build:
+      context: .
+      dockerfile: docker/dev/Dockerfile
+    init: true
+    working_dir: /workspace
+    environment:
+      APP_NAME: Cetakin Cloud
+      APP_ENV: local
+      APP_KEY: ${DEV_APP_KEY:?}
+      APP_DEBUG: "false"
+      APP_URL: http://127.0.0.1:${DEV_APP_PORT:?}
+      DB_CONNECTION: pgsql
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_DATABASE: cetakin_dev
+      DB_USERNAME: cetakin_dev
+      DB_PASSWORD: ${DEV_DB_PASSWORD:?}
+      DB_SSLMODE: disable
+      SESSION_DRIVER: file
+      SESSION_COOKIE: ${DEV_PROJECT:?}_session
+      CACHE_STORE: array
+      LOG_CHANNEL: stderr
+      LOG_LEVEL: warning
+      CETAKIN_DEV_CONTAINER: "1"
+      CETAKIN_DEV_PROJECT: ${DEV_PROJECT:?}
+    ports:
+      - "127.0.0.1:${DEV_APP_PORT:?}:8000"
+    volumes:
+      - .:/workspace
+      - vendor:/workspace/vendor
+      - app_storage:/workspace/storage
+      - bootstrap_cache:/workspace/bootstrap/cache
+    labels:
+      cetakin.worktree-id: ${DEV_WORKTREE_ID:?}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://127.0.0.1:8000/up') === '{\"status\":\"ok\"}' ? 0 : 1);"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+
+  postgres:
+    image: postgres:18.6-trixie
+    environment:
+      POSTGRES_USER: cetakin_admin
+      POSTGRES_PASSWORD: ${DEV_ADMIN_PASSWORD:?}
+      POSTGRES_DB: postgres
+      DEV_DB_PASSWORD: ${DEV_DB_PASSWORD:?}
+      DEV_TEST_PASSWORD: ${DEV_TEST_PASSWORD:?}
+    ports:
+      - "127.0.0.1:${DEV_DB_PORT:?}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./docker/dev/init-databases.sh:/docker-entrypoint-initdb.d/10-cetakin.sh:ro
+    labels:
+      cetakin.worktree-id: ${DEV_WORKTREE_ID:?}
+    healthcheck:
+      test: ["CMD", "pg_isready", "--host=127.0.0.1", "--username=cetakin_dev", "--dbname=cetakin_dev"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  node:
+    image: node:24.21.0-bookworm-slim
+    profiles: [tools]
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - node_modules:/workspace/node_modules
+    labels:
+      cetakin.worktree-id: ${DEV_WORKTREE_ID:?}
+    command: ["npm", "run", "build"]
+
+volumes:
+  postgres_data:
+  vendor:
+  node_modules:
+  app_storage:
+  bootstrap_cache:

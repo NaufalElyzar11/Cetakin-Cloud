@@ -2,7 +2,11 @@
 
 Cetakin Cloud is a production-oriented software engineering portfolio project for managing Cetakin, a real 3D printing business.
 
-Planning and architecture have been approved for implementation (G0). This checkout implements only **CET-001**: one Laravel application serving a neutral React/TypeScript page through Inertia, without SSR. Business decisions BD-01–17 remain gated; no customer or staff workflow is implemented.
+Planning and architecture have been approved for implementation (G0). This checkout implements **CET-001** bootstrap plus **CET-002** local Windows/PostgreSQL infrastructure and **CET-003** testing/quality gates: one Laravel application serving a neutral React/TypeScript page through Inertia, without SSR. Business decisions BD-01–17 remain gated; no customer or staff workflow is implemented.
+
+## Windows container development
+
+Use Docker Desktop Linux containers and PowerShell; host PHP/Composer/Node are optional. Follow [DEVELOPMENT](docs/DEVELOPMENT.md) for isolated worktree setup, locked dependency installation/build, PostgreSQL dev/test targets, safe reset and cleanup. Start with `.\scripts\dev.ps1 setup`, then `install`, `build`, and `start`. Each worktree gets its own environment, ports and runtime volumes. Run `.\scripts\quality.ps1` before a PR; it checks PostgreSQL foundation tests, components, formatting, static/types, build and dependency audits. The GitHub PR/main workflow uses the same gate; no deployment is configured.
 
 ## CET-001 setup
 
@@ -23,9 +27,9 @@ php artisan serve --host=127.0.0.1 --port=8000
 
 Open `http://127.0.0.1:8000/`. `GET /up` returns only `{"status":"ok"}`; it confirms application routing, not database/storage health or production readiness. Do not overwrite an existing `.env` when repeating setup. Its generated application key is local and must stay untracked. `APP_DEBUG` is disabled by default.
 
-For asset development, run `npm run dev` in a second terminal. Stop it and remove an abandoned `public/hot` file before checking the production build. Worktrees may choose different application/Vite ports; shared services and container isolation belong to CET-002.
+For host asset development, run `npm run dev` in a second terminal. Stop it and remove an abandoned `public/hot` file before checking the production build. The documented Compose workflow instead uses compiled assets and isolated runtime resources.
 
-The bootstrap uses file sessions and an in-memory array cache so startup needs no database. These are transport-only defaults: approved database-backed identity sessions arrive with CET-004. No database file, connection, migrations, authentication, worker, public API or Docker configuration is included. PostgreSQL and its tests begin in later tasks. Inertia DevTools recording and automatic filesystem serving/upload routes are disabled. The four bootstrap smoke tests are database-free checks, not the PostgreSQL-backed F layer in [TEST_STRATEGY](docs/TEST_STRATEGY.md).
+The bootstrap uses file sessions and an in-memory array cache so its routes need no database. These are transport-only defaults: approved database-backed identity sessions arrive with CET-004. CET-002 adds PostgreSQL connection/configuration and migration bookkeeping only; no business schema, authentication, worker or public API exists. Inertia DevTools recording and automatic filesystem serving/upload routes are disabled. The four bootstrap smoke tests are database-free checks, not the PostgreSQL-backed F layer in [TEST_STRATEGY](docs/TEST_STRATEGY.md).
 
 ## Module ownership convention
 
