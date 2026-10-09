@@ -13,7 +13,7 @@ services:
       APP_ENV: local
       APP_KEY: ${DEV_APP_KEY:?}
       APP_DEBUG: "false"
-      APP_URL: http://127.0.0.1:${DEV_APP_PORT:?}
+      APP_URL: http://${DEV_PROJECT:?}.localhost:${DEV_APP_PORT:?}
       DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: "5432"
@@ -21,9 +21,9 @@ services:
       DB_USERNAME: cetakin_dev
       DB_PASSWORD: ${DEV_DB_PASSWORD:?}
       DB_SSLMODE: disable
-      SESSION_DRIVER: file
+      SESSION_DRIVER: database
       SESSION_COOKIE: ${DEV_PROJECT:?}_session
-      CACHE_STORE: array
+      CACHE_STORE: database
       LOG_CHANNEL: stderr
       LOG_LEVEL: warning
       CETAKIN_DEV_CONTAINER: "1"

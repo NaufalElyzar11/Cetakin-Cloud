@@ -2,10 +2,21 @@
 
 namespace Tests\Bootstrap;
 
+use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Testing\TestCase;
+use Symfony\Component\Process\Process;
 
 class BootstrapTest extends TestCase
 {
+    public function createApplication(): Application
+    {
+        $app = parent::createApplication();
+        $app['config']->set('session.driver', 'file');
+        $app['config']->set('cache.default', 'array');
+
+        return $app;
+    }
+
     public function test_neutral_page_serves_the_inertia_browser_entry(): void
     {
         $initial = $this->get('/')
@@ -48,7 +59,23 @@ class BootstrapTest extends TestCase
         $this->get('/not-an-application-route')->assertNotFound();
     }
 
-    public function test_only_the_bootstrap_page_and_health_routes_are_exposed(): void
+    public function test_secure_cookie_defaults_match_the_application_environment_without_loading_local_dotenv(): void
+    {
+        $probe = <<<'PHP'
+require 'vendor/autoload.php';
+require 'bootstrap/app.php';
+$application = require 'config/app.php';
+$session = require 'config/session.php';
+echo json_encode([$application['env'], $session['secure']], JSON_THROW_ON_ERROR);
+PHP;
+        foreach ([[false, false, 'production', true], ['local', false, 'local', false], ['production', false, 'production', true], ['local', 'true', 'local', true]] as [$environment, $secure, $expectedEnvironment, $expectedSecure]) {
+            $process = new Process([PHP_BINARY, '-r', $probe], base_path(), ['APP_ENV' => $environment, 'SESSION_SECURE_COOKIE' => $secure]);
+            $process->mustRun();
+            $this->assertSame([$expectedEnvironment, $expectedSecure], json_decode($process->getOutput(), true, flags: JSON_THROW_ON_ERROR));
+        }
+    }
+
+    public function test_only_bootstrap_and_customer_identity_routes_are_exposed(): void
     {
         $this->assertFalse(config('inertia.devtools.enabled'));
         $this->assertFalse(config('filesystems.disks.local.serve'));
@@ -56,7 +83,7 @@ class BootstrapTest extends TestCase
         $routes = app('router')->getRoutes()->getRoutes();
         $uris = array_map(fn ($route) => $route->uri(), $routes);
         sort($uris);
-        $this->assertSame(['/', 'up'], $uris);
+        $this->assertSame(['/', 'account', 'account/customers/{customer}', 'login', 'login', 'logout', 'register', 'register', 'up'], $uris);
 
         foreach (['_inertia/devtools/entries', '_inertia/devtools/entries/unknown', 'storage/bootstrap.txt'] as $path) {
             $this->get('/'.$path)->assertNotFound();

@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Access\Models\Customer;
+use App\Access\Policies\CustomerPolicy;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // No speculative module services.
     }
 
     /**
@@ -19,6 +22,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Gate::policy(Customer::class, CustomerPolicy::class);
     }
 }
