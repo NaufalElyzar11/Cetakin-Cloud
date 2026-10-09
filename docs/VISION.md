@@ -81,7 +81,7 @@ A quiet pilot cannot prove security or reliability. These are future checks, not
 - Staff can review files and prepare quotations manually; no automated slicing or instant price estimate is required initially.
 - The business can keep production updates current without automated printer integration.
 - Customers can provide STL or 3MF files and enough specifications for review. File limits, handling unsuitable files, and assistance for customers without printable files remain open.
-- Customer access and order ownership must be established, but the account or access method is undecided.
+- Customer access and order ownership must be established. BD-01 v1 (approved 2026-10-10 in PRD section 7.1) selects email/password self-registration and current User-to-Customer relationships; authentication proves access continuity, not legal identity or design rights. Staff authority remains BD-05.
 - Customer status tracking is desired scope; its adoption and usefulness still need validation with actual customers before adding a broader customer portal.
 - Payment records are sufficient initially. Accepted payment methods, deposits, production-release rules, refunds, and order-closing conditions need business decisions.
 - Available materials, supported printing options, turnaround expectations, fulfillment methods, and cancellation/reprint policies still need confirmation.

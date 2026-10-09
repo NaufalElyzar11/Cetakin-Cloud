@@ -7,7 +7,7 @@
 | Term | Business meaning / modeling choice |
 | --- | --- |
 | Customer | Business party whose request, designs and order are being handled. Record ownership is not proof of intellectual-property ownership. |
-| User / actor | Identifiable person acting through an approved access relationship. A full customer account is not assumed. Customer-to-user mapping remains BD-01. |
+| User / actor | Attributable authenticated account/person acting through a current access relationship. BD-01 v1 selects email/password self-registration; User and Customer remain distinct without permanent one-to-one cardinality. Authentication is continuity of access, not legal/design identity. |
 | Staff; Administrator; Production Operator | Responsibilities granted to an actor, not three person entities. Owner/Administrator reviews, agrees operational decisions and records money/outcomes; Operator handles authorized production facts. One person can hold several roles. |
 | Print Request | Owned submitted work awaiting review, clarification, quotation or disposition; the source of the initial agreement/order. |
 | Print Specification | Identified set of requested/agreed preferences, quantity and exact file references. Reviewed, issued and accepted contents must be distinguishable. |
@@ -24,12 +24,12 @@
 
 ## 2. Entities and identifiable records
 
-Identity means a record can be recognized through time and referenced unambiguously, without choosing an identifier format. The table describes eight business entities plus a minimal User/actor supporting attribution reference, not a mandatory account entity. Attributes below are conceptual information, not database fields. Customer ownership propagates through the request/order chain; an administrator is an authorized custodian, not the owner of customer designs.
+Identity means a record can be recognized through time and referenced unambiguously, without choosing an identifier format. The table describes eight business entities plus the minimal User/actor account needed by approved BD-01 v1. Attributes below are conceptual information, not database fields. Customer ownership propagates through the request/order chain; an administrator is an authorized custodian, not the owner of customer designs.
 
 | Entity | Identity, lifecycle and conceptual attributes | Relationships / responsibility / requirements |
 | --- | --- | --- |
-| Customer | Stable business reference; minimum contact value. No CRM or separate customer-state machine proposed. | Owns requests; order ownership follows their accepted request. Access relationship to User unresolved. REQ-001/002/028/033. |
-| User / actor (supporting reference) | Stable attributable person/access reference; granted responsibilities and revocation history. No mandated registration/account lifecycle. | Acts for an authorized customer or as staff. Grants are owner-authorized; existing views confer no continuing permission. REQ-011/034/035. |
+| Customer | Stable business reference; contact Name, Email and WhatsApp / phone number under BD-01 v1. No CRM or separate customer-state machine. | Owns requests; order ownership follows their accepted request. Current access relationships identify which Users may act; no permanent one-to-one User rule. REQ-001/002/028/033. |
+| User / actor (supporting account) | Stable attributable account/person reference; email login identifier, credential continuity, granted responsibilities and revocation/access-change history. First registration establishes one User, one Customer and their initial access relationship. | Acts for an associated customer or under separately approved staff authority. No staff privilege follows from registration. Assisted recovery retains actor/time/reason; staff authority remains BD-05. Historical decision attribution is not reassigned by recovery. REQ-011/033/034/035; BD-01 v1. |
 | Print Request | Request identity; PRD lifecycle; customer, current requested specification, submitted time, clarification/review facts, next action and quotation history. | Belongs to one Customer; contains submitted file versions and quotation versions; at most one initial Order. Owner reviews/disposes; customer submits/replies. REQ-001-014/028. |
 | Design File Version | Exact version identity; submitting actor/customer, parent request, original name, format, submission time, replacement reference and handling/availability outcome. No printability lifecycle. | Many versions can belong to one request; quotation/order/job refer to exact versions. Customer provenance fixed; task-authorized staff access. Permitted content deletion preserves allowed references/unavailability evidence. REQ-027/028/030/031. |
 | Quotation Version | Proposal/version identity; draft then PRD decision states; exact specification/files, quantity, total/currency, terms/deadline, issue time, decision evidence, successor reference. | Contained by originating Request; initial proposal or amendment referencing its Order/current agreement. Staff prepare; customer decides. Accepted Agreement is an attached immutable fact. REQ-008-014. |
@@ -48,7 +48,7 @@ Values describe meaning rather than an independent lifecycle. A changed value is
 | --- | --- |
 | Money | Amount plus currency; precision/rounding BD-07/14. Only comparable approved currency can form a settled balance. Unknown is not zero; no currency conversion implied. |
 | Quantity | Requested/planned quantity is a positive whole number. Actual usable output may be zero; it cannot include failed units. Offering/quantity semantics BD-02, checks BD-10. |
-| Customer Contact | Minimum owner-approved contact details; no segmentation/profile subsystem. Required fields/access BD-01/05. |
+| Customer Contact | Name, Email and WhatsApp / phone number under BD-01 v1; no segmentation/profile subsystem. Email is used for account login, not proof of customer/design ownership. Staff visibility remains BD-05. |
 | Print Specification | Material, color, quantity, approved options and exact File References. Issued scope is a fixed identified snapshot; later request edits cannot change it. |
 | File Reference | Exact submitted version identity and request/customer provenance; availability is checked separately. A reference remains meaningful when content is unavailable under policy. |
 | Quotation Terms | Exact customer-visible conditions and stated deadline if offered; no assumed expiry, tax engine or payment timing. BD-07/09. |
@@ -80,6 +80,7 @@ These requirements reject eventual successful-but-unlinked handoffs. They choose
 ## 5. Relationships and cardinalities
 
 ```text
+User 0..* ---- current ownership/access relationships ---- 0..* Customer
 Customer 1 ---- 0..* Print Request
 Print Request 1 ---- 1..* submitted Design File Versions
 Print Request 1 ---- 0..* Quotation Versions
@@ -99,13 +100,13 @@ An initial Agreement belongs to exactly one resulting Order; every accepted amen
 
 One conceptual Payment Record exists even before any receipt: its empty event history and current agreed payable basis produce unpaid/no-payment-due truth, not an invented receipt or another lifecycle. This logical cardinality does not prescribe a separately provisioned record.
 
-Each Request/Order has one business Customer. Which Users can act for that Customer, and whether one User relates to several Customers, remain BD-01; no one-to-one account assumption. An actor may have several staff/customer responsibilities, but each action requires its applicable permission. Active work has a Next Action/responsible person; incomplete assignment is visible rather than inventing a staff department (REQ-007).
+Each Request/Order has one business Customer. BD-01 v1 initially provisions one User, one Customer and one relationship on registration; that onboarding outcome does not constrain the long-term relationship cardinality. Current explicit relationships determine which Users can act for each Customer. No multi-customer management UI, invitation or delegation product is introduced. An actor may have several staff/customer responsibilities, but each action requires its applicable permission. Active work has a Next Action/responsible person; incomplete assignment is visible rather than inventing a staff department (REQ-007).
 
 File cardinality describes submission/evidence references, not permanent availability of all contents. Format/count limits and permitted retention/deletion remain BD-03/06. Job/output details do not introduce per-file inventory or salvage allocation.
 
 ## 6. Enforceable business invariants
 
-1. Customer identity/ownership and current task permissions govern every list, read, file action, decision and change. Earlier access or operator assignment cannot confer admin/money privilege; revocation denies subsequent actions (REQ-033/034).
+1. Current User-to-Customer relationships and task permissions govern every list, read, file action, decision and change. Authentication/email matching alone grants no Customer ownership, design rights or staff privilege. Logout/expiry/revocation deny subsequent access; quotation acceptance requires the authenticated customer relationship, never substitute staff authority. Earlier access or operator assignment cannot confer admin/money privilege (REQ-011/033/034; BD-01 v1).
 2. A successfully submitted Request records a valid approved specification and completed supported files belonging to that customer/request at submission. Failed upload is not usable; same-attempt retry does not add a request. Later permitted content deletion retains the availability/evidence rules below (REQ-001/002/027/028/031).
 3. Quotation issue requires sufficient review. Issued contents are fixed; replacement is another version. Acceptance/rejection identifies the customer, exact version and time; stale, rejected, withdrawn, superseded or expired proposals cannot be accepted (REQ-004/008-012).
 4. Exactly one initial accepted proposal produces one traceable Order; no orphan successful conversion or duplicate initial order. Accepted history remains inspectable (REQ-009/011/013/041).
@@ -159,13 +160,13 @@ Events describe business facts that merit retained attribution; they are not req
 
 Ownership checks cover lists, details, metadata and direct file/record actions. Permission is evaluated for the action being attempted; previously opened data grants no future right. Public Status and customer payment summary are limited interpretations, never unrestricted copies of internal records. One human with several roles uses the permission applicable to each action. An Administrator who is also a Customer may accept only as the verified customer for their own eligible quote; staff permission never substitutes for that relationship (REQ-011/022/033-035).
 
-## 10. Unresolved business decisions
+## 10. Business decisions and adoption status
 
-All 17 PRD decisions remain open. Conceptual modeling/synthetic examples can proceed; dependent implementation and real reliance require adoption plus separate authorization. No default below is silently selected.
+BD-01 v1 is approved (2026-10-10; PRD section 7.1). BD-02–17 remain open. Conceptual modeling/synthetic examples can proceed; dependent implementation and real reliance require adoption plus separate authorization. No other default below is silently selected.
 
 | Decision | Affected concept / unfinalized rule | Safe now; what waits |
 | --- | --- | --- |
-| BD-01 Identity/contact | Customer/User relationship, ownership and attributable acceptance. | Model references/private boundaries; private intake waits for verified-access/contact rules. No account cardinality chosen. |
+| BD-01 Identity/contact — ADOPTED v1 | Email/password account, required contacts, initial provisioning, current relationships and attributable customer decisions. | Customer identity policy gate resolved; no permanent one-to-one rule. Administrative assisted recovery awaits BD-05 authority; no verification-email or self-service password reset. No implementation is started by policy approval. |
 | BD-02 Offerings/quantity | Specification/Quantity completeness and valid selections. | Model bounded preferences/manual review; intake waits for actual options/required fields/quantity meaning. |
 | BD-03 Upload limits/checks | File Version usable handling and supported attempt. | Exact versions and STL/3MF concepts; upload waits for count/size/handling rules. |
 | BD-04 Rights/confidentiality | Permission to print, refusal and task-sensitive access. | Record provenance, assume no IP transfer; real design intake/printing waits for handling/permission policy. |
@@ -183,7 +184,7 @@ All 17 PRD decisions remain open. Conceptual modeling/synthetic examples can pro
 | BD-16 Reliance profile | Recovery ownership/fallback/hours/ordinary responsiveness. | Domain/synthetic work unblocked; real reliance waits for verified recovery/access and useful conditions. Numeric SLA deferred. |
 | BD-17 Validation | Baseline/sample/window/useful improvement threshold. | Lightweight manual evidence possible; pilot/value claim waits for meaningful baseline/comparison. No analytics build. |
 
-Only BD-01/02/03 are PRD BLOCKING-NOW for separately authorized private intake; other decisions gate their named features or real use. This domain model resolves none of them.
+BD-01's former BLOCKING-NOW gate is resolved by explicit approval, not inferred from this model. BD-02/03 still block separately authorized private intake; other decisions gate their named features or real use. BD-05 continues to gate staff authority, including administrative assisted recovery.
 
 ## 11. Complexity risks and deliberate restraint
 

@@ -1,6 +1,6 @@
 # Cetakin Cloud Implementation Roadmap
 
-**Status: Proposed for human review, 2026-10-07.** This roadmap follows `AGENTS.md`, `README.md`, `VISION.md`, the reduced `PRD.md`, `DOMAIN.md`, `ARCHITECTURE.md`, `TEST_STRATEGY.md` and ADR-001–007. Requirements remain authoritative; proposed architecture and unresolved business decisions are not silently approved. Only this document changes. No task below is implemented, and no code, tests, configuration, dependencies, branches or deployment are created.
+**Status: Human-approved at G0; BD-01 alignment on 2026-10-10.** This roadmap follows `AGENTS.md`, `README.md`, `VISION.md`, the reduced `PRD.md`, `DOMAIN.md`, `ARCHITECTURE.md`, `TEST_STRATEGY.md` and accepted ADR-001–007. CET-001–003 are completed; CET-004 has not started. BD-01 v1 is explicitly approved; BD-02–17 retain their gates. This documentation update does not execute a task or authorize deployment.
 
 ## 1. Principles, task types and approval gates
 
@@ -10,7 +10,7 @@ Task types are **FOUNDATION**, **PRODUCT**, **QUALITY/SECURITY**, **OPERATIONS**
 
 **G0 — Before any implementation:** human review/adoption of the roadmap and applicable architecture/ADRs, confirmation of React/TypeScript maintenance capability under ADR-002, and explicit implementation authorization. If that capability is absent, reconsider topology through an authorized ADR/document revision, not an accidental implementation substitution. Compatible supported versions are selected and locked during foundation work, not guessed here. G0 is a decision checkpoint, not a counted implementation task.
 
-Business decisions must be adopted with attributable policy/version and dependent acceptance examples. Technical scaffolding can precede BD-01; identity/private intake cannot. Synthetic demonstration is not operational permission. Real designs require BD-04/06 and verified recovery/fallback under BD-16; this schedule assumes synthetic data until the reliance gate. Proposed numerical pilot measures and a quiet demo never prove production readiness.
+Business decisions must be adopted with attributable policy/version and dependent acceptance examples. BD-01 v1 is now adopted for customer entry, contacts, relationships and recovery policy; BD-05 still gates privileged recovery/staff authority. Other decisions remain unresolved. Synthetic demonstration is not operational permission. Real designs require BD-04/06 and verified recovery/fallback under BD-16; this schedule assumes synthetic data until the reliance gate. Proposed numerical pilot measures and a quiet demo never prove production readiness.
 
 ## 2. Task contract and shared definition of done
 
@@ -70,31 +70,32 @@ Test codes match `TEST_STRATEGY.md`: **U** domain/unit; **F** application/HTTP u
 
 ### CET-004 — Approved actor identity and owned customer session [PRODUCT]
 
-- **Objective:** A verified actor accesses only their approved customer records through the selected identity method.
+- **Objective:** A customer self-registers/logs in with email/password and accesses only their current related customer records.
 - **Why now:** Intake needs established ownership and attributable future decisions.
-- **Scope:** Minimal Actor/User reference, Customer association/contact, approved entry/expiry/provisioning/recovery behavior; database sessions, CSRF/cookie/logout controls, scoped reads and safe projections, proportional identity throttling.
-- **Out of scope:** Unapproved registration/email/password reset, OAuth/SSO/JWT, one-account-one-customer assumption, generalized RBAC.
-- **Dependencies:** CET-003; BD-01 adopted. BD-05 is not required for customer-only entry.
+- **Scope:** BD-01 v1 email/password self-registration; first registration creates one User, one Customer contact/profile and one relationship without permanent one-to-one cardinality. Name/Email/WhatsApp-or-phone contact; supported password hashing, login throttling, database sessions, session rotation/expiry/revocation/logout, CSRF/cookie controls, scoped reads and safe projections.
+- **Out of scope:** Verification email/email infrastructure, self-service password reset, JWT/OAuth/SSO, staff roles/generalized RBAC, multi-customer management UI and privileged manual recovery action (CET-005 after BD-05).
+- **Dependencies:** CET-003; BD-01 v1 adopted on 2026-10-10. BD-05 is not required for customer-only entry. This policy record does not start CET-004.
 - **Expected areas/files:** Access identity/policies/migrations/actions, session configuration, entry/own-record pages and tests.
-- **Acceptance criteria:** A sees own records; B IDs/list entries are denied/absent; forged ownership fields fail; logout/expiry deny later actions; role overlap cannot impersonate another customer; sensitive responses do not leak props/cache private data.
-- **Required test evidence:** F/P ownership/provenance; C entry/expiry/errors; focused production-equivalent CSRF/session security smoke per strategy, O approved identity examples.
+- **Acceptance criteria:** Registration creates the initial User/Customer/relationship consistently with no staff role or verification-email requirement; valid/invalid login and throttling behave truthfully. Passwords are hashed, authentication rotates session, A sees only related records, B IDs/list entries and forged ownership/staff fields are denied. Logout/expiry/revocation deny later access; contact/email matching alone grants none. Model can represent non-one-to-one relationships without new management features; sensitive responses do not leak props/cache private data.
+- **Required test evidence:** F/P registration consistency/ownership/cardinality/session guards and password/login rejection; C registration/login/expiry/errors; focused production-equivalent CSRF/session security smoke per TEST_STRATEGY section 4.1, O approved BD-01 v1 examples.
 - **Agent ownership:** Backend Architect; Code Reviewer and Frontend Developer.
 - **Parallelization:** SEQUENTIAL; central identity/policy/session contract must settle before feature use.
-- **Definition of Done:** Shared DoD plus approved BD-01 behavior and passing Customer A/B isolation/security smoke.
+- **Definition of Done:** Shared DoD plus customer-entry portion of BD-01 v1 and passing Customer A/B isolation/security smoke. Administrative assisted recovery remains an explicit CET-005 deliverable after BD-05; CET-004 completion must not claim the full recovery workflow exists. This avoids a CET-004↔CET-005 dependency cycle.
 
 ### CET-005 — Fixed staff responsibilities and revocation [PRODUCT]
 
 - **Objective:** Task-authorized administrators/operators receive only their approved responsibilities, and later access stops after revocation.
 - **Why now:** First staff review must never inherit blanket privileges.
-- **Scope:** Small attributable grant/revoke path, task access and assignment checks, current-permission queries, shared scoped projections; no production-only money/design-directory privilege.
+- **Scope:** Small attributable grant/revoke path, task access and assignment checks, current-permission queries, shared scoped projections; no production-only money/design-directory privilege. Add BD-01 v1's owner/admin manual assisted recovery after external verification with attributable access changes, using approved BD-05 authority.
 - **Out of scope:** Configurable role/permission editor, delegation product, departments, cached long-lived permission grants.
 - **Dependencies:** CET-004; BD-05 adopted before staff access.
 - **Expected areas/files:** Access grants/policies/history/actions and minimal owner workflow/tests.
 - **Acceptance criteria:** Approved staff grants/current checks and existing Access read/grant surface allow or deny correctly; no self-promotion; revocation immediately changes the current grant decision and denies later existing Access actions; actor/time/reason retained; admin-as-customer still requires own verified relationship. Actual file/update endpoints are not present yet: CET-006/007 add customer revoked-download checks and staff checks if both capabilities exist; whichever capability arrives second adds real staff grant/file integration. CET-008 owns the final staff-file/revocation acceptance before first staff use, regardless branch order; CET-015 adds revoked production-update checks before that feature completes.
-- **Required test evidence:** F/P existing Access allowed/denied checks and grant history; C revoked Access-page response where implemented; O owner authority validation. Do not certify missing file/production routes with a fake endpoint.
+- **Recovery acceptance criteria (BD-01 v1):** Only an approved owner/admin can apply an externally verified assisted-recovery change; customer/operator/unapproved staff attempts fail. Resulting access is truthful, the responsible actor/time/reason is retained, and existing agreement attribution remains unchanged. No reset email or staff impersonation is introduced.
+- **Required test evidence:** F/P existing Access allowed/denied checks, grant history and manual recovery authorization/attribution with preserved historical decisions; C revoked Access-page/recovery response where implemented; O owner authority and external-recovery-process validation. Do not certify missing file/production routes with a fake endpoint.
 - **Agent ownership:** Backend Architect; Code Reviewer.
 - **Parallelization:** CONDITIONALLY-PARALLEL with CET-006 only after CET-004 contracts stabilize; owns staff-grant files exclusively, no shared policy/route/schema edits without serial integration.
-- **Definition of Done:** Shared DoD plus approved staff matrix/revocation evidence, ready before CET-008 staff review.
+- **Definition of Done:** Shared DoD plus approved staff matrix/revocation and BD-01 v1 assisted-recovery evidence, ready before CET-008 staff review. No email reset or identity-verification product is added.
 
 ## 5. Customer intake milestone — first useful vertical slice
 
@@ -479,7 +480,7 @@ flowchart TD
   G0[Human architecture and roadmap adoption plus implementation authorization] --> C001[CET-001 Bootstrap]
   C001 --> C002[CET-002 Windows PostgreSQL]
   C002 --> C003[CET-003 Tests and CI]
-  B1[BD-01] --> C004[CET-004 Identity]
+  B1[BD-01 v1 approved] --> C004[CET-004 Identity]
   C003 --> C004
   C004 --> C005[CET-005 Staff authority]
   B5[BD-05] --> C005
@@ -581,9 +582,10 @@ One owner edits a shared file at a time; coordinate required shared route/schema
 
 | Decision checkpoint | Gates / remains unresolved |
 | --- | --- |
-| BD-01/02/03 — BLOCKING-NOW | BD-01 before CET-004/private intake; actual offerings and bounded checks before CET-006. CET-001–003 technical foundation can proceed after G0 without invented business identity/options. |
+| BD-01 — ADOPTED v1, 2026-10-10 | Customer identity/contact/relationship gate before CET-004 is resolved. Administrative assisted recovery remains CET-005 after BD-05 authority; no CET-004 execution is inferred from this approval. |
+| BD-02/03 — BLOCKING-NOW | Actual offerings and bounded checks before CET-006 remain unresolved. Completed CET-001–003 foundation chooses no business options/upload policy. |
 | BD-04/06 — BEFORE REAL FILE USE | Rights/confidentiality/refusal and retention/recovery copies before real designs; BD-06 actual assisted deletion before CET-010. Synthetic development is independent; no permanent retention default. |
-| BD-05 — BEFORE FIRST STAFF FEATURE | CET-005 and staff review CET-008; adopted task-restricted responsibilities/authority, no generalized RBAC. |
+| BD-05 — BEFORE FIRST STAFF FEATURE | CET-005 staff grants/BD-01 assisted recovery and staff review CET-008; adopted task-restricted responsibilities/authority, no generalized RBAC. |
 | BD-07 — BEFORE QUOTE/MONEY | CET-011–013 and money/change behavior: total/currency/precision/terms, deadline only if adopted. |
 | BD-08 — BEFORE ACCEPTED CHANGE/RETRY RESOLUTION | CET-016/017 and late-change safety CET-018; reduced never-started boundary and supported held resolution require adoption, no forced replacement default. |
 | BD-09 — BEFORE RELEASE/PAYMENT | CET-014/015/019; approved receipt-dependent release advances CET-019. Acceptance/payment label alone never grants release. |

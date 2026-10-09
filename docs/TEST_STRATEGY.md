@@ -11,7 +11,7 @@
 - Use the lowest sufficient layer; reuse representative fixtures and table-driven cases. Do not chase 100% coverage, every state pair, load testing or a large browser suite.
 - Required failed, skipped or unrun tests prevent completion. Name the missing evidence; do not relabel an incomplete feature as done.
 
-BD-01/02/03 gate private intake; BD-05 precedes first staff review, BD-04/06 precede real designs. BD-07–14 gate their quotation, change, release, retry, outcome and payment behaviors. Approved policies supply test oracles; unresolved policy-dependent features cannot pass their acceptance gate using invented defaults. Synthetic exploratory examples may proceed after implementation authorization, clearly marked provisional. BD-16 gates reliance; BD-17 gates pilot/value claims. BD-15 automation stays deferred. Record adopted policy/version beside the dependent acceptance examples.
+BD-01 v1 is approved (2026-10-10; PRD section 7.1); BD-02/03 still gate private intake. BD-05 precedes first staff actions/review and administrative assisted recovery; BD-04/06 precede real designs. BD-07–14 gate their quotation, change, release, retry, outcome and payment behaviors. Approved policies supply test oracles; unresolved policy-dependent features cannot pass their acceptance gate using invented defaults. Synthetic exploratory examples may proceed after implementation authorization, clearly marked provisional. BD-16 gates reliance; BD-17 gates pilot/value claims. BD-15 automation stays deferred. Record adopted policy/version beside the dependent acceptance examples.
 
 ## 2. Layers and responsibilities
 
@@ -68,6 +68,21 @@ Test list, detail, file and mutation boundaries via actual HTTP requests, includ
 Add one role-overlap case: Administrator who is also Customer A can decide their own quote through verified customer ownership, but staff privilege cannot accept B's. Remove task permission after a page loads while keeping its session, then retry update and download; both deny with current authority and revocation attribution remains. Test fresh requests after revocation and session expiry/logout. Already received bytes cannot be recalled; no test claims otherwise.
 
 Normal framework test mode can bypass CSRF middleware; a green ordinary feature suite is not CSRF evidence. Run one focused security smoke against production-equivalent middleware/session configuration, proving valid state change and configured cross-site/untrusted-origin rejection, secure cookie settings and logout invalidation. Exercise invalid/missing token where required, without trusted same-origin metadata that legitimately satisfies the adopted protection. Reuse the testing server/browser setup without another full journey. Verify the chosen framework version's harness and origin/token rules during implementation. [Laravel CSRF testing behavior](https://laravel.com/framework/docs/13.x/csrf).
+
+### 4.1 BD-01 v1 identity acceptance evidence
+
+These are future feature acceptance oracles, not tests implemented by this policy update. Use actual customer entry/access endpoints in CET-004; add privileged recovery only with approved BD-05 authority in CET-005. Quotation/file checks belong to the later real workflows.
+
+| Capability | Minimum evidence / layer |
+| --- | --- |
+| Initial registration | One successful self-registration creates one User, one Customer contact/profile and one current relationship. Required Name/Email/WhatsApp-or-phone contact is represented; failure cannot leave reported partial success. Email is the login identifier; no email verification or email-delivery requirement. F/P/C |
+| Ownership/cardinality | A sees only customers permitted by current relationships; B's identifiers, nested routes and forged ownership/staff fields fail. Account/email matching is not authority. A controlled relationship fixture proves the model does not enforce permanent User=Customer cardinality; no multi-customer management UI is required. F/P |
+| Credential/session controls | Password is not stored as plaintext and verifies through supported hashing; valid/invalid login and adopted rate-limit boundaries; authentication rotates the session; logout/expiry/revocation deny subsequent requests from an old page. Customer entry grants no staff role. F/P and focused production-equivalent session/CSRF security smoke |
+| Browser behavior | Registration/login visible labels, validation/rejection/loading errors and expired-session handling are testable without an E2E suite expansion. No verification-email or reset-email flow is exposed. C |
+| Manual assisted recovery | After BD-05, authorized owner/admin records an access change after external verification; customer/operator/unapproved staff cannot recover another person's access. Actor/time/reason and prior agreement attribution are preserved; later requests obey the resulting current relationship/session state. F/P/C plus O owner validation of the external process |
+| Later quotation decisions | Authenticated current customer relationship permits own eligible acceptance; staff-only authority and another customer's actor cannot substitute. Original actor/version/decision/time survive assisted recovery. F/P with CET-013, not fake quotation routes in CET-004 |
+
+Numeric throttle/session settings and credential-input handling are adopted during implementation and tested at their boundaries; this plan invents no fixed limit or new business gate.
 
 ## 5. State-machine evidence
 

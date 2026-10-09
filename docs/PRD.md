@@ -1,8 +1,8 @@
 # Cetakin Cloud MVP Product Requirements Document
 
-**Status:** Reduced first-MVP proposal for human review. Behaviors/defaults are proposals, not approved policies or authorization to implement or operate software.
+**Status:** Human-approved reduced first-MVP baseline (G0). BD-01 v1 was explicitly approved on 2026-10-10; BD-02–17 retain their documented gates. Policy approval does not start another implementation task or authorize production reliance.
 
-**Authority:** `AGENTS.md`, `README.md`, and `docs/VISION.md`. No framework, database, cloud provider, storage design or implementation architecture is selected. Only this PRD changes; handoffs assign future work without editing its destination.
+**Authority:** `AGENTS.md`, `README.md`, and `docs/VISION.md`. Architecture and technology decisions belong to `docs/ARCHITECTURE.md` and its ADRs. The approved BD-01 policy below supplies product acceptance rules; this update implements no application behavior.
 
 ## 1. Scope and reduction decisions
 
@@ -18,7 +18,7 @@ Post-MVP items are uncommitted candidates requiring business evidence. All visio
 
 ## 2. Personas and permissions
 
-Roles describe responsibilities, not departments. Ownership/access method remains BD-01. Production-only users receive no admin privileges. Customer-visible fields must be explicit; internal notes, design diagnostics, staff financial references and other customers' details remain private.
+Roles describe responsibilities, not departments. Customer identity/access follows approved BD-01 v1 (section 7.1); staff authority remains gated by BD-05. Production-only users receive no admin privileges. Customer-visible fields must be explicit; internal notes, design diagnostics, staff financial references and other customers' details remain private.
 
 | Responsibility | Customer | Owner / administrator | Production operator only |
 | --- | --- | --- | --- |
@@ -207,13 +207,13 @@ Visible truth/responsible next action suffice; no separate case-management produ
 
 ## 7. Business decisions and stage gates
 
-All 17 IDs remain **C: policy**, BD-16 also detail **E**, optional portions **D**. Priorities per Section 3. No general rules engine.
+All 17 IDs remain **C: policy**, BD-16 also detail **E**, optional portions **D**. BD-01 v1 is adopted; BD-02–17 remain unresolved. Priorities per Section 3. No general rules engine.
 
 **BLOCKING-NOW** before first separately authorized customer-only private-intake implementation, not documentation/domain. **BLOCKING-BEFORE-FEATURE** gates named behavior/real reliance; unrelated/synthetic work may proceed if later authorized. BD-05 before **first staff access/review**, even first slice. **CAN-DEFER** no product-development prerequisite. Defaults require adoption; minimum policy, not every hypothetical, required.
 
 | ID / priority / timing | Decision / why / dependencies | Options, minimum proposal and proceed boundary |
 | --- | --- | --- |
-| BD-01 MUST / BLOCKING-NOW | Ownership/private access/contact/decision identity; REQ-001/011/033 | Verified access or account/minimum contacts/direct decision proposed. Before private intake; offline support defer, no technology. |
+| BD-01 MUST / ADOPTED: v1, 2026-10-10 (formerly BLOCKING-NOW) | Customer identity/contact, relationship-based access and decision attribution; REQ-001/011/033/034/035 | Email/password self-registration, separate User/Customer/access relationship, server session and manual assisted recovery; approved policy in section 7.1. This gate is resolved; BD-05 still gates administrative recovery authority and all staff behavior. |
 | BD-02 MUST / BLOCKING-NOW | Actual inputs/offering/quantity; REQ-001/004/008 | Small actual material/color/options/manual availability; before intake, no full catalog. |
 | BD-03 MUST / BLOCKING-NOW | STL/3MF count/size/checks; REQ-001/027 | Bounded limits; no exact size default evidence. Before upload, assistance deferred. |
 | BD-04 MUST / BLOCKING-BEFORE-FEATURE: real intake/printing | Permission/confidentiality/refusal owner; REQ-006/027/028 | Approved permission/handling without IP transfer; before real designs, synthetic independent, no legal engine. |
@@ -230,6 +230,20 @@ All 17 IDs remain **C: policy**, BD-16 also detail **E**, optional portions **D*
 | BD-15 DEFER / CAN-DEFER | Automated age/disposition; REQ-007/010 | Manual follow-up/withdraw/decline enough; no silence -> agreement/cancel; automation no prerequisite. |
 | BD-16 MOVE / BLOCKING-BEFORE-FEATURE: real reliance | Recovery/fallback/owner/hours/profile; REQ-043/Section 8 | Future readiness/TEST_STRATEGY; minimum recovery/fallback before reliance. Numeric SLA CAN-DEFER; domain/synthetic intake unblocked. |
 | BD-17 SHOULD / BLOCKING-BEFORE-FEATURE: pilot/value claim | Baseline/sample/window/threshold; Section 9 | Baseline before pilot comparison; useful threshold after baseline; four weeks only if volume supports, extend otherwise. CAN-DEFER development; no benefit claim before evidence. |
+
+### 7.1 Approved BD-01 v1 — Customer Identity & Access
+
+**Decision source:** explicit human instruction in the project conversation on 2026-10-10. This replaces the earlier access-method proposal only; it approves none of BD-02–17. Dependent acceptance examples reference this version.
+
+- **Authentication/registration:** a customer may self-register an email/password account. First successful registration creates exactly one User, one Customer profile and one ownership/access relationship. Customer contact comprises Name, Email and WhatsApp / phone number; Email is the login identifier. Failed registration must not report success with only part of that initial relationship established.
+- **Relationship:** User/Actor and Customer remain conceptually separate. Initial provisioning is one of each, not a permanent one-to-one cardinality rule. Login grants no blanket Customer access, and matching contact/email alone is not an ownership relationship. Each customer-scoped request checks the current relationship. Multi-customer account-management features are not introduced by permitting the relationship model to grow later.
+- **Verification meaning:** email verification is not required in the first MVP; no email-delivery infrastructure is required for it. Email/password authentication proves continuity of access, not legal identity, verified email ownership or ownership/permission to reproduce a design. BD-04 remains the design-rights gate.
+- **Agreement:** future quotation acceptance requires an authenticated actor with the current relationship to that quotation's Customer. Staff authority cannot substitute for customer acceptance; a staff member who is also that customer acts through their own customer relationship. Preserve original decision/actor/version evidence (REQ-011/035).
+- **Recovery:** no email password-reset workflow in the first MVP. Owner/Administrator performs manual assisted recovery after verification outside the system; resulting access changes retain responsible actor, time and reason without rewriting historical agreement attribution (REQ-034/035). Staff authorization for that action remains BD-05. The external verification procedure is owner-run, not a new identity-verification product. Self-service reset may follow only when email infrastructure is actually needed.
+- **Session/security:** server-side Laravel sessions; no JWT, OAuth or SSO. Logout, expiry and revocation deny subsequent access. Passwords use Laravel-supported hashing; login attempts are rate-limited; authentication rotates the session; state-changing browser requests use CSRF protection. Numeric session/throttle settings are implementation configuration, not silently selected business policy here.
+- **Staff separation:** registration/authentication supplies no Administrator or Production Operator responsibility. BD-05 remains unresolved. Customer entry can be planned independently; privileged assisted recovery cannot be implemented or certified before that authority is approved.
+
+Minimum acceptance examples: successful registration establishes the three initial records and required contact; failure leaves no reported partial success; Customer A cannot access B without a current relationship; an existing login/session cannot bypass a removed relationship; logout/expired/revoked sessions deny later requests; customer registration cannot self-grant staff privileges. Login/registration do not require verified email or send reset/verification email. After BD-05, assisted recovery records the responsible administrator and resulting access change. Quotation acceptance tests arrive with that real workflow, not a fabricated identity endpoint.
 
 ## 8. Quality and real-reliance gates
 

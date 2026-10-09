@@ -1,6 +1,6 @@
 # Cetakin Cloud Architecture
 
-**Status: Proposed for human review.** Recommendations follow `AGENTS.md`, `README.md`, `VISION.md`, the reduced `PRD.md` and `DOMAIN.md`. This document and seven proposed ADRs are the only changes. No application, dependencies, containers or infrastructure have been initialized. Business decisions BD-01–17 retain their existing gates; choosing technology resolves none of them.
+**Status: Accepted for implementation at G0.** The architecture follows `AGENTS.md`, `README.md`, `VISION.md`, the reduced `PRD.md` and `DOMAIN.md`; ADR-001–007 were accepted at G0. CET-001–003 provide the implemented foundation. BD-01 v1 was separately approved on 2026-10-10; BD-02–17 retain their gates. This policy alignment starts no implementation task and changes no application topology.
 
 ## 1. Architectural principles
 
@@ -94,13 +94,13 @@ Assisted deletion first records approved intent, blocks affected work/access and
 
 ## 7. Authentication and authorization
 
-Recommend same-origin database-backed server sessions after BD-01 establishes how an actor is verified and linked to a Customer. Identity verification, session mechanics and business permissions are separate decisions. A session is not evidence of design rights or blanket administration. Fixed Owner/Admin and Operator responsibilities plus task authorization are sufficient; no custom role editor, OAuth/SSO/JWT platform or mandatory self-registration/reset/email product is added.
+Use the accepted same-origin database-backed Laravel sessions with BD-01 v1's email/password self-registration. Authentication, customer relationships and staff authority are separate checks. First registration establishes one User, one Customer profile and one relationship as one completed outcome; it does not impose permanent one-to-one cardinality. Contact comprises Name, Email and WhatsApp / phone number; Email is the login identifier. Customer requests still check current relationships. Fixed Owner/Admin and Operator responsibilities remain BD-05; registration grants neither. No custom role editor, OAuth/SSO/JWT platform or email-delivery requirement is introduced.
 
-Compare entry methods before implementation: registered credentials offer repeat access but require account provisioning/recovery rules; verified limited private access can reduce account onboarding but must define verification, attribution, expiry and recovery of lost access. Either may establish a server session after BD-01 approval. No email channel, bearer link, registration or reset workflow is implicitly chosen. Browser cookies/CSRF fit this origin; a real future mobile/API client would require a separately scoped token/credential and revocation contract, not reuse of an Inertia page or an automatic JWT choice.
+BD-01 v1 selects registered credentials over the earlier limited-private-access alternative. Email verification is not required for the first MVP. Authentication proves access continuity, not legal identity, email ownership or design rights. Passwords use Laravel-supported hashing, without selecting a new hashing implementation here. Lost access is handled by owner/admin manual assisted recovery after verification outside the system, with attributable access changes; its staff authority remains BD-05. No verification/reset email, password-reset product or bearer-link entry is added. Browser cookies/CSRF fit this origin; a real future mobile/API client would require a separately scoped token/credential and revocation contract, not reuse of an Inertia page or an automatic JWT choice.
 
 Use HTTPS, secure/HttpOnly cookies with deliberate SameSite settings, session regeneration at authentication, logout/invalidation, bounded session expiry and CSRF protection for state changes. Database session storage avoids adding Redis solely for login; supported session drivers and policy facilities are documented by Laravel. [Sessions](https://laravel.com/framework/docs/session), [Authorization](https://laravel.com/framework/docs/authorization). ADR-005.
 
-Check current grants/ownership at every server action, including direct downloads and already-open screens; scope record lists as well as detail lookups. Allowlist page fields: operator data never includes prices/payments hidden by CSS. One human can be Admin and Customer, but acceptance uses verified ownership of their own quote, never staff impersonation. Rate-limit identity attempts, uploads/downloads and consequential commands proportionately.
+Check current grants/ownership at every server action, including direct downloads and already-open screens; scope record lists as well as detail lookups. Allowlist page fields: operator data never includes prices/payments hidden by CSS. One human can be Admin and Customer, but acceptance uses their authenticated current Customer relationship for their own quote, never staff impersonation. Logout, expired/revoked sessions and removed relationships deny later access. Rate-limit login attempts, uploads/downloads and consequential commands proportionately; authentication rotates the session and browser mutations retain CSRF protection.
 
 ## 8. Frontend experience
 
@@ -296,7 +296,7 @@ All records are **Proposed**, dated 2026-10-05, and require architectural review
 | [006](adr/006-no-initial-redis-or-workers.md) | No initial Redis/background workers; database queue first if justified |
 | [007](adr/007-managed-deployment-pattern.md) | Provider-neutral managed deployment pattern subject to recovery/budget review |
 
-BD-01/02/03 gate private intake; BD-05 precedes staff review; BD-04/06 precede real design use. BD-07–14 gate their quote/change/production/payment/outcome features; BD-16 gates operational reliance, BD-17 meaningful pilot claims. BD-15 automation stays deferred. Technology approval, feature-policy approval, implementation authorization and production reliance are different checkpoints.
+BD-01 v1 is approved; BD-02/03 still gate private intake. BD-05 precedes staff actions/review and administrative assisted recovery; BD-04/06 precede real design use. BD-07–14 gate their quote/change/production/payment/outcome features; BD-16 gates operational reliance, BD-17 meaningful pilot claims. BD-15 automation stays deferred. Technology approval, feature-policy approval, implementation authorization and production reliance are different checkpoints.
 
 ## 20. Explicit non-goals
 
