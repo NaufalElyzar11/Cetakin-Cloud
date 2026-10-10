@@ -2,11 +2,20 @@
 
 namespace Tests\Database;
 
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
 use Tests\Support\PostgresTestCase;
 
 class PostgresFoundationTest extends PostgresTestCase
 {
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Guarded PostgreSQL is already resolved before any schema changes.
+        Artisan::call('migrate', ['--force' => true]);
+        config(['session.driver' => 'database', 'cache.default' => 'database']);
+    }
+
     public function test_application_http_and_real_postgresql_are_available_together(): void
     {
         $this->getJson('/up')->assertOk()->assertExactJson(['status' => 'ok']);

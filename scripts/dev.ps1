@@ -62,7 +62,7 @@ if ($Action -eq 'setup') {
         'DEV_TEST_PASSWORD=cetakin_local_test_only'
     )
     [IO.File]::WriteAllLines($taskEnvPath, $taskEnvironment, [Text.UTF8Encoding]::new($false))
-    Write-Output "Created ignored .env.docker for $taskProject. App port $AppPort; PostgreSQL port $DatabasePort."
+    Write-Output "Created ignored .env.docker for $taskProject. Browser URL http://$taskProject.localhost`:$AppPort; PostgreSQL port $DatabasePort."
     exit 0
 }
 
@@ -95,7 +95,7 @@ try {
     Invoke-TaskCompose -Arguments @('config', '--quiet')
     $taskTestEnvironment = @('-e', 'APP_ENV=testing', '-e', 'DB_DATABASE=cetakin_test', '-e', 'DB_USERNAME=cetakin_test', '-e', "DB_PASSWORD=$($taskSettings.DEV_TEST_PASSWORD)")
     switch ($Action) {
-        'config' { Write-Output 'Compose configuration is valid.' }
+        'config' { Write-Output "Compose configuration is valid. Browser URL http://$taskProject.localhost`:$($taskSettings.DEV_APP_PORT)." }
         'start' { Invoke-TaskCompose -Arguments @('up', '--detach', '--build', '--wait', 'app', 'postgres') }
         'stop' { Invoke-TaskCompose -Arguments @('down') }
         'status' { Invoke-TaskCompose -Arguments @('ps', '--all') }
@@ -131,7 +131,7 @@ try {
             Invoke-TaskCompose -Arguments (@('exec', '-T') + $taskTestEnvironment + @('app', 'composer', 'test:postgres'))
             Invoke-TaskCompose -Arguments @('exec', '-T', 'app', 'composer', 'audit', '--locked')
             Invoke-TaskCompose -Arguments @('run', '--rm', '--no-deps', 'node', 'npm', 'audit', '--audit-level=high')
-            Write-Output 'All CET-003 quality groups passed.'
+            Write-Output 'All application quality groups passed.'
         }
         'migrate' { Invoke-TaskCompose -Arguments @('exec', '-T', 'app', 'php', 'scripts/dev/database.php', 'migrate-dev') }
         'db-check' { Invoke-TaskCompose -Arguments @('exec', '-T', 'app', 'php', 'scripts/dev/database.php', 'dev-check') }

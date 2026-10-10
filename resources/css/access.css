@@ -1,0 +1,60 @@
+.access-page {
+    max-width: 34rem;
+}
+.access-page fieldset {
+    border: 0;
+    padding: 0;
+    margin: 0;
+}
+.access-legend {
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+.access-field {
+    display: grid;
+    gap: 0.4rem;
+    margin-bottom: 1rem;
+}
+.access-field input,
+.access-page button {
+    font: inherit;
+    padding: 0.65rem;
+    border: 1px solid #65717b;
+    border-radius: 0.25rem;
+}
+.access-field input {
+    min-width: 0;
+    background: #fff;
+}
+.access-page button {
+    cursor: pointer;
+    background: #17212b;
+    color: #fff;
+}
+.access-page button:disabled {
+    cursor: wait;
+    opacity: 0.7;
+}
+.access-errors {
+    border: 2px solid #a22121;
+    padding: 0.75rem 1rem;
+    margin: 1rem 0;
+}
+.access-field-error {
+    color: #a22121;
+    margin: 0;
+}
+.access-page :focus-visible {
+    outline: 3px solid #1765a3;
+    outline-offset: 3px;
+}
+.access-page a {
+    color: #174f86;
+}
+.access-page dt {
+    font-weight: 600;
+}
+.access-page dd {
+    margin: 0.3rem 0 1rem;
+    overflow-wrap: anywhere;
+}

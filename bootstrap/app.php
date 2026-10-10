@@ -16,6 +16,8 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [HandleInertiaRequests::class]);
+        $middleware->redirectGuestsTo('/login');
+        $middleware->redirectUsersTo('/account');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         // Use Laravel's safe default error responses; add no product behavior.
