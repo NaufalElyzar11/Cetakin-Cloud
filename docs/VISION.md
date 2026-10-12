@@ -30,7 +30,7 @@ The engineering portfolio should demonstrate a working, supportable business wor
 
 ### Custom printing request to completion
 
-1. A customer submits a printing request with an STL or 3MF file, material, color, quantity, and printing options.
+1. A customer submits a custom FDM printing request for one product or an explicitly defined component set, with STL/3MF design file(s), PETG, an approved color and a positive whole quantity of complete products/sets. Notes about special needs, finishing or printing preferences are optional; slicer-specific settings are not required. Approved offerings and file limits are recorded in PRD sections 7.3/7.4.
 2. Cetakin reviews feasibility, file suitability, specification completeness, and material availability. Staff request clarification or decline unsuitable work when necessary.
 3. Cetakin prepares and issues a quotation manually. The customer accepts or rejects a clearly identified quotation; unanswered quotations remain unresolved rather than becoming orders automatically.
 4. An accepted quotation becomes a traceable order using the agreed specifications and quotation. A material change to price or scope requires renewed customer agreement.
@@ -80,12 +80,12 @@ A quiet pilot cannot prove security or reliability. These are future checks, not
 - Custom printing is the first operational priority; selling Cetakin's own products can wait.
 - Staff can review files and prepare quotations manually; no automated slicing or instant price estimate is required initially.
 - The business can keep production updates current without automated printer integration.
-- Customers can provide STL or 3MF files and enough specifications for review. File limits, handling unsuitable files, and assistance for customers without printable files remain open.
+- Customers can provide STL or 3MF files and enough specifications for review. BD-03 v1 (approved 2026-10-12 in PRD section 7.4) fixes the selected set at 1–5 files, at most 25 MiB each and 75 MiB combined. Passing format checks does not establish printability; staff review suitability, and whether assistance is offered to customers without usable files remains unresolved.
 - Customer access and order ownership must be established. BD-01 v1 (approved 2026-10-10 in PRD section 7.1) selects email/password self-registration and current User-to-Customer relationships; authentication proves access continuity, not legal identity or design rights. Staff authority remains BD-05.
 - Customer status tracking is desired scope; its adoption and usefulness still need validation with actual customers before adding a broader customer portal.
 - Payment records are sufficient initially. Accepted payment methods, deposits, production-release rules, refunds, and order-closing conditions need business decisions.
-- Available materials, supported printing options, turnaround expectations, fulfillment methods, and cancellation/reprint policies still need confirmation.
-- File ownership, customer permission to print, retention expectations, and staff access rules need agreement.
+- BD-02 v1 (approved 2026-10-12 in PRD section 7.3) selects custom FDM printing, PETG and orange/sky blue/white/black; actual availability and feasibility are reviewed manually before manual quotation. No business maximum quantity is approved. Turnaround expectations, fulfillment methods and cancellation/reprint policies still need confirmation.
+- Uploading transfers no intellectual property. BD-04 permission/confidentiality and BD-06 retention/deletion remain OPEN before real-design use; operational readiness also gates reliance. Synthetic development may follow BD-02/03 documentation adoption. Staff access follows approved BD-05; this update changes neither BD-01 nor BD-05.
 - Current tools, request volume, staffing, maintenance capacity, and baseline effort must be understood before promising efficiency or scale.
 
 ## 8. Risks

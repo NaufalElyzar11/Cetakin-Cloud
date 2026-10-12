@@ -1,6 +1,6 @@
 # Cetakin Cloud Architecture
 
-**Status: Accepted for implementation at G0.** The architecture follows `AGENTS.md`, `README.md`, `VISION.md`, the reduced `PRD.md` and `DOMAIN.md`; ADR-001–007 were accepted at G0. CET-001–004 provide the implemented foundation and customer identity. BD-01 v1 was separately approved on 2026-10-10; **BD-05 — APPROVED v1 — 12 October 2026**. BD-02–04 and BD-06–17 remain OPEN with their gates. This policy alignment starts no implementation task and changes no application topology.
+**Status: Accepted for implementation at G0.** The architecture follows `AGENTS.md`, `README.md`, `VISION.md`, the reduced `PRD.md` and `DOMAIN.md`; ADR-001–007 were accepted at G0. CET-001–005 provide the implemented foundation and Access capabilities. BD-01 v1 was separately approved on 2026-10-10; BD-02, BD-03 and BD-05 are **APPROVED v1 — 12 October 2026**. BD-04 and BD-06–17 remain OPEN with their gates. BD-01/05 policy and application topology are unchanged; this documentation alignment starts no implementation task.
 
 ## 1. Architectural principles
 
@@ -86,7 +86,7 @@ After write/format/integrity verification, a short SQL action locks the intent a
 
 Association and maintenance cleanup share the intent's guard/claim: in-flight, commit-uncertain and confirmed objects are never classified as detached. Cleanup requires positively resolved unused/failed ownership under BD-06, claims it durably before external removal, and prevents any later association once claimed. Failure/late outcomes remain tracked for reconciliation, not abandoned or silently acknowledged. Test cleanup-versus-association and concurrent same-attempt writes. No broad age-only orphan deletion or initial worker is assumed.
 
-Reject misleading/unsupported/incomplete files. For inspected 3MF archives/XML, bound entries, expanded size, recursion and processing time; reject unsafe paths, entity/external-resource expansion and malformed containers. Never execute, indiscriminately extract, render or slice uploads. No automated geometry or external-viewer safety claim. Owner-approved limits BD-03 and confidentiality/rights BD-04 remain prerequisites. [OWASP upload guidance](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html).
+Reject misleading/unsupported/incomplete files. For inspected 3MF archives/XML, bound entries, expanded size, recursion and processing time; reject unsafe paths, entity/external-resource expansion and malformed containers. Never execute, indiscriminately extract, render or slice uploads. No automated geometry or external-viewer safety claim. Approved BD-03 v1 defines selected-file count and binary MiB limits in PRD section 7.4; align application/ingress handling without changing this storage architecture. Archive/XML processing budgets remain justified engineering safeguards, not additional business quantity/file limits. BD-04/06 and operational readiness still gate real designs; synthetic development may follow BD-02/03 documentation adoption. [OWASP upload guidance](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html).
 
 Every download begins with fresh server ownership/task authorization and streams a private object as an attachment with safe filename/content headers. Avoid public storage links and reusable object bearer URLs. Short-lived presigned downloads reduce load but retain an access window after revocation; they do not meet a promise of fresh authorization for every later retrieval. Already delivered bytes cannot be recalled.
 
@@ -104,7 +104,7 @@ Check current grants/ownership at every server action, including direct download
 
 ### 7.1 Approved BD-05 integration obligations
 
-**BD-05 — APPROVED v1 — 12 October 2026**, recorded in PRD section 7.2, resolves the staff-policy gate. Apply it within the existing Access/session architecture when separately authorized for implementation; CET-005 has not started. BD-01 is unchanged; BD-02–04 and BD-06–17 remain OPEN.
+**BD-05 — APPROVED v1 — 12 October 2026**, recorded in PRD section 7.2, resolves the staff-policy gate. Its existing Access/session obligations below are unchanged by BD-02/03 adoption. BD-01 is unchanged; BD-04 and BD-06–17 remain OPEN. This update starts no CET task.
 
 - Operator actions require both current Operator responsibility and current authorization for the actual work record/action. Owner/Admin may record guarded, attributable production facts without a separate Operator responsibility. Neither authority bypasses agreement, hold, release or terminal guards; Customer actions still require the Customer relationship.
 - Initial Owner provisioning uses a trusted administrative CLI/offline process, never a public bootstrap endpoint, with its real external authorization source rather than a fabricated prior administrator. Competing bootstrap attempts can establish only one initial Owner; a losing attempt cannot become a later grant. It is not a continuing alternate grant/recovery path. Responsibility changes and their attribution commit together; current acting authority and protection of the last active Owner must survive competing revocations in one local PostgreSQL consistency boundary. Count active grants, not sessions.
@@ -308,7 +308,7 @@ All records are **Proposed**, dated 2026-10-05, and require architectural review
 | [006](adr/006-no-initial-redis-or-workers.md) | No initial Redis/background workers; database queue first if justified |
 | [007](adr/007-managed-deployment-pattern.md) | Provider-neutral managed deployment pattern subject to recovery/budget review |
 
-BD-01 v1 and BD-05 v1 are approved; the staff-policy gate is resolved without starting CET-005. BD-02–04 and BD-06–17 remain OPEN: BD-02/03 still gate private intake; BD-04/06 precede real design use; BD-07–14 gate their quote/change/production/payment/outcome features; BD-16 gates operational reliance, BD-17 meaningful pilot claims. BD-15 automation stays deferred. Technology approval, feature-policy approval, implementation authorization and production reliance are different checkpoints.
+BD-01 v1 and BD-05 v1 remain approved and unchanged. BD-02/03 v1 (12 October 2026, PRD sections 7.3/7.4) resolve offering/specification and bounded-file policy gates for synthetic intake after documentation adoption; no CET-006 implementation starts here. BD-04 and BD-06–17 remain OPEN: BD-04/06 precede real design use; BD-07–14 gate their quote/change/production/payment/outcome features; BD-16 gates operational reliance, BD-17 meaningful pilot claims. BD-15 automation stays deferred. Technology approval, feature-policy approval, implementation authorization and production reliance are different checkpoints.
 
 ## 20. Explicit non-goals
 

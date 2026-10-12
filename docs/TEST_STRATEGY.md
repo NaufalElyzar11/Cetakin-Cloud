@@ -1,6 +1,6 @@
 # Cetakin Cloud Test Strategy
 
-**Status: Proposed for human review.** This strategy follows `AGENTS.md`, `README.md`, `VISION.md`, the reduced `PRD.md`, `DOMAIN.md`, `ARCHITECTURE.md` and ADR-001–007. Product requirements remain authoritative; architecture/ADRs remain proposed. No application, tests, CI workflows or dependencies are created, and no software correctness or readiness is certified here.
+**Status: Human-approved at G0; BD-02/03 policy alignment — 12 October 2026.** This strategy follows `AGENTS.md`, `README.md`, `VISION.md`, the reduced `PRD.md`, `DOMAIN.md`, accepted `ARCHITECTURE.md` and ADR-001–007. Product requirements remain authoritative. This documentation update creates no application code, tests, CI workflows or dependencies and certifies no software correctness or readiness.
 
 ## 1. Principles and policy gates
 
@@ -11,7 +11,7 @@
 - Use the lowest sufficient layer; reuse representative fixtures and table-driven cases. Do not chase 100% coverage, every state pair, load testing or a large browser suite.
 - Required failed, skipped or unrun tests prevent completion. Name the missing evidence; do not relabel an incomplete feature as done.
 
-BD-01 v1 is approved (2026-10-10; PRD section 7.1); **BD-05 — APPROVED v1 — 12 October 2026** (PRD section 7.2). The BD-05 policy gate is resolved; CET-005 has not started. BD-02–04 and BD-06–17 remain OPEN: BD-02/03 still gate private intake, BD-04/06 precede real designs, and BD-07–14 gate their quotation, change, release, retry, outcome and payment behaviors. Approved policies supply test oracles; unresolved policy-dependent features cannot pass their acceptance gate using invented defaults. Synthetic exploratory examples may proceed after implementation authorization, clearly marked provisional. BD-16 gates reliance; BD-17 gates pilot/value claims. BD-15 automation stays deferred. Record adopted policy/version beside the dependent acceptance examples. This documentation update implements or executes no tests.
+BD-01 v1 (2026-10-10; PRD section 7.1) and **BD-05 — APPROVED v1 — 12 October 2026** (section 7.2) remain unchanged. **BD-02 and BD-03 — APPROVED v1 — 12 October 2026** (sections 7.3/7.4) resolve offering/specification and bounded-file policy gates: synthetic CET-006 development may proceed after documentation adoption, but is not started here. BD-04 and BD-06–17 remain OPEN: BD-04/06 precede real designs, and BD-07–14 gate their quotation, change, release, retry, outcome and payment behaviors. Approved policies supply test oracles; unresolved policy-dependent features cannot pass their acceptance gate using invented defaults. BD-16 gates operational reliance; BD-17 gates pilot/value claims. BD-15 automation stays deferred. Record adopted policy/version beside the dependent acceptance examples. This documentation update implements or executes no tests.
 
 ## 2. Layers and responsibilities
 
@@ -35,7 +35,7 @@ These grouped targets account for all **37 active MUST IDs**. Layers name primar
 
 | Capability / PRD journeys | MUST IDs | Essential evidence / layers |
 | --- | --- | --- |
-| Intake / J01 | REQ-001, REQ-002 | Valid owned request/exact inputs; invalid input or failed upload no success; same attempt one result, deliberate new request allowed. F, S, P; E-01 |
+| Intake / J01 | REQ-001, REQ-002 | Approved FDM/PETG/color and complete-product/set quantity; selected-file limits and exact owned versions; invalid input or failed upload no success; same attempt one result, deliberate new request allowed. F, S, P, C; E-01 |
 | Review, clarification, decline and work list / J02–04 | REQ-004, REQ-005, REQ-006, REQ-007 | Insufficient review blocks quote; linked question/reply/version/re-review; silence not agreement; reasoned terminal decline; waiting work retains action/responsibility. F, C |
 | Quotation / J05–08 | REQ-008, REQ-009, REQ-010, REQ-011, REQ-012 | Exact identified fixed proposal; one eligible version; ownership/deadline/decision evidence; stale/rejected version denied and retry recovers result. F, P, C; E-01 |
 | Initial order / J09 | REQ-013 | Acceptance, converted request, exact agreement/files/payable and one retrievable order commit together; no successful orphan/duplicate. F, P; E-01 |
@@ -103,6 +103,22 @@ These targets follow BD-05 v1 approved on 12 October 2026, PRD section 7.2. They
 
 Use real User/Customer relationships, responsibility changes, Access management actions and database sessions in CET-005. Retained staff provenance determines the approved recovery safeguard, never current authority; revocation does not make a previously privileged account eligible for ordinary recovery. The sole-Owner offline exception uses its real trusted source rather than requiring an unavailable authenticated Owner session. Add actual work-assignment history only with actual records in CET-014/015; there is nothing to restore or invalidate on absent future records. Recovery assertions inspect identity relationships and authorization history now, then retained quotation/production provenance when those features exist. Do not build fake agreements to claim this evidence early or add another browser suite.
 
+### 4.3 Approved BD-02/03 intake acceptance examples
+
+These are documentation acceptance oracles for CET-006, not tests created or executed here. PRD sections 7.3/7.4 are authoritative; use synthetic designs until BD-04/06 and operational readiness permit real use. Prefer grouped/table-driven F/S cases and focused C feedback rather than additional browser journeys.
+
+| Capability | Approved example / expected result |
+| --- | --- |
+| Offering and required input | Submit valid design file(s), PETG, each of orange/sky blue/white/black and a positive integer quantity for custom FDM printing. Reject missing required input or an unapproved material/color; omit optional notes and all slicer settings successfully. No extra mandatory finishing/infill/layer-height/nozzle/support choices. F/C |
+| Quantity and component sets | Quantity 1 and a quantity greater than 1 represent complete products/sets. A two-file component set with quantity 3 requests three complete sets, not six independently ordered products. Reject zero, negative and fractional quantities; do not infer a business maximum from the five-file limit or introduce automatic component/output allocation. U/F/C |
+| File count | Reject an empty selected set and six files; one and five valid STL/3MF files may pass if all other bounds/checks pass. Count the current selected set, not lifetime replacement history or a retry of the same file. F/S |
+| Individual and combined byte limits | One MiB is 1,048,576 bytes. Accept a valid file at 25 MiB (26,214,400 bytes); reject one byte over. Accept three valid 25 MiB files at 75 MiB combined (78,643,200 bytes); reject a selected set one byte over even if every file is individually allowed. Exercise immediately below/at/above boundaries; count exact submitted file bytes, not declared client sizes. F/S/C |
+| Format, safety and truthful completion | Supported STL/3MF content passes bounded format checks; renamed/malformed content, unsafe archive/XML, truncated upload or failed association never produces a confirmed usable file/request. Safe archive-processing budgets do not certify geometry, printability or malware freedom. F/S |
+| Private versions and replacement | A's files remain private to current authorized access; B's metadata/bytes deny. Replacement selects a newly identified version; old issued/accepted references remain exact and cannot change silently. More than five retained historical versions does not itself violate the current selected-set cap. Retention/deletion assertions await BD-06; no permanent-content or automatic deletion default. F/P/S |
+| Review and price boundary | Intake confirmation supplies no feasibility, stock, price or printing guarantee. CET-008/011 verify manual feasibility/material-availability review before manual quotation; successful upload is insufficient. Do not require an automated price or inventory feature. F/C with the actual later workflows |
+
+Synthetic upload does not imply permission to process real customer designs, intellectual-property transfer or operational reliance. BD-04 processing permission and BD-06 retention/actual deletion remain OPEN; use authorized synthetic fixtures without silently adopting those policies.
+
 ## 5. State-machine evidence
 
 Use table-driven feature tests for the listed transitions, with focused unit guards where independent of persistence. Each successful row proves actor/time/reason where applicable and preserved prior evidence. Rejection proves no business transition, agreement/event creation or silent history rewrite. For offered quote deadlines, freeze time just before, at and after the stated boundary; reached deadlines deny acceptance even without a scheduler/status refresh. Do not invent duration or enumerate every Cartesian state pair.
@@ -139,13 +155,13 @@ Also test representative cancellation/start contention: approved final cancellat
 
 ## 7. File security and storage evidence
 
-Build small synthetic fixtures, including one accepted STL and one bounded valid 3MF under adopted BD-03 checks. Format acceptance proves supported handling, not printability or malware freedom.
+Build synthetic fixtures, including one accepted STL and one bounded valid 3MF under approved BD-03 v1. Keep ordinary fixtures small; generate boundary-sized fixtures in isolated test storage only for the count/25 MiB/75 MiB cases in section 4.3. Format acceptance proves supported handling, not printability or malware freedom. Numerical archive/XML processing budgets are justified engineering safeguards, not new business file-size or quantity policies.
 
 | Input/access case | Expected product outcome |
 | --- | --- |
 | Allowed STL/3MF | Private verified completion; exact customer/request/version identity; authorized attachment download |
 | Unsupported extension, renamed content/type mismatch | Safe identified rejection; extension/header alone never establishes supported content; no usable association |
-| Oversize, truncated/incomplete transfer | Boundaries immediately below/at/above adopted limits; no false success; retry can resolve same attempt |
+| Count/oversize, truncated/incomplete transfer | Approved 1–5 selected files, 25 MiB per file and 75 MiB combined, with binary-byte boundary cases in section 4.3; no false success; retry can resolve same attempt without adding another logical file |
 | Malformed 3MF/archive abuse | Reject corrupt container, unsafe traversal/absolute paths, excessive entries/expansion/recursion or processing bound violations; no extraction outside controlled scope |
 | Unsafe XML/external entities | Reject/disable dangerous expansion and external resources; test fixture cannot cause network/local-secret reads; no uploaded code execution |
 | Ownership/revocation | A cannot retrieve B metadata/bytes via direct IDs/key manipulation; operator only authorized designs; later revoked download denied even from old page |
