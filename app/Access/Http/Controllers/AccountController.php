@@ -18,6 +18,7 @@ class AccountController
 
         return Inertia::render('Access/Account', [
             'actor' => $actor->only('id', 'name', 'email'),
+            'staffManagementUrl' => $actor->hasResponsibility('owner') ? route('staff') : null,
             'customers' => $actor->customers()->wherePivotNull('revoked_at')->orderBy('customers.id')->get()->map(fn (Customer $customer) => [...$customer->only('id', 'name', 'email', 'phone'), 'detailUrl' => route('account.customer', $customer)]),
         ]);
     }

@@ -5,5 +5,5 @@ use App\Access\Models\User;
 return [
     'defaults' => ['guard' => 'web'],
     'guards' => ['web' => ['driver' => 'session', 'provider' => 'users']],
-    'providers' => ['users' => ['driver' => 'eloquent', 'model' => User::class]],
+    'providers' => ['users' => ['driver' => 'access-eloquent', 'model' => User::class]],
 ];

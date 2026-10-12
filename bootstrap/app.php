@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->name('health');
         },
     )
+    ->withCommands([__DIR__.'/../app/Access/Console'])
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [HandleInertiaRequests::class]);
         $middleware->redirectGuestsTo('/login');

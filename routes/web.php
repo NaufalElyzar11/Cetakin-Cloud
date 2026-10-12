@@ -3,6 +3,7 @@
 use App\Access\Http\Controllers\AccountController;
 use App\Access\Http\Controllers\RegistrationController;
 use App\Access\Http\Controllers\SessionController;
+use App\Access\Http\Controllers\StaffController;
 use App\Http\Middleware\PrivateResponse;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -16,9 +17,12 @@ Route::middleware(PrivateResponse::class)->group(function (): void {
         Route::get('/login', [SessionController::class, 'create'])->name('login');
         Route::post('/login', [SessionController::class, 'store'])->middleware('throttle:30,1');
     });
-    Route::middleware('auth')->group(function (): void {
+    Route::middleware(['auth', 'auth.session'])->group(function (): void {
         Route::post('/logout', [SessionController::class, 'destroy'])->name('logout');
         Route::get('/account', [AccountController::class, 'index'])->name('account');
         Route::get('/account/customers/{customer}', [AccountController::class, 'show'])->name('account.customer');
+        Route::get('/staff', [StaffController::class, 'index'])->name('staff');
+        Route::post('/staff/responsibilities', [StaffController::class, 'grant'])->middleware('throttle:20,1');
+        Route::post('/staff/responsibilities/{grant}/revoke', [StaffController::class, 'revoke'])->middleware('throttle:20,1');
     });
 });
