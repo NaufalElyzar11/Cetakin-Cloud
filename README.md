@@ -2,7 +2,7 @@
 
 Cetakin Cloud is a production-oriented software engineering portfolio project for managing Cetakin, a real 3D printing business.
 
-Planning and architecture have been approved for implementation (G0). This checkout implements **CET-001–003** application/development/quality foundations and **CET-004** customer registration, login, logout and ownership-scoped account views. It remains one Laravel + Inertia + React/TypeScript application without SSR. BD-01 v1 is approved (2026-10-10; PRD section 7.1); BD-02–17 remain gated. CET-005 staff/recovery work and later business capabilities have not started.
+Planning and architecture have been approved for implementation (G0). The application foundations and customer identity are CET-001–004. **CET-005** extends Access with fixed staff responsibilities, attributable revocation, trusted initial Owner provisioning and same-User credential recovery. It remains one Laravel + Inertia + React/TypeScript application without SSR. BD-01 v1 (2026-10-10) and BD-05 v1 (2026-10-12) are approved in the PRD; BD-02–04 and BD-06–17 remain OPEN. No later business capabilities are included.
 
 ## Windows container development
 
@@ -16,7 +16,7 @@ Use PHP 8.3 or a compatible newer supported PHP release, Composer 2, and Node.js
 
 For host asset development, run `npm run dev` in a second terminal. Stop it and remove an abandoned `public/hot` file before checking the production build. The documented Compose workflow instead uses compiled assets and isolated runtime resources.
 
-The bootstrap smoke suite explicitly uses file sessions/array cache to retain database-free checks. Access tests use guarded PostgreSQL and database sessions/cache. Inertia DevTools recording and automatic filesystem serving/upload routes remain disabled. There is no staff authorization, recovery, email delivery, worker or public API.
+The bootstrap smoke suite explicitly uses file sessions/array cache to retain database-free checks. Access tests use guarded PostgreSQL and database sessions/cache. Follow DEVELOPMENT for the trusted CLI provisioning/recovery runbook and Owner-only responsibility management. Operator responsibility grants no access to absent future work records. Inertia DevTools recording and automatic filesystem serving/upload routes remain disabled. There is no email delivery, self-service reset, worker or public API.
 
 ## Module ownership convention
 

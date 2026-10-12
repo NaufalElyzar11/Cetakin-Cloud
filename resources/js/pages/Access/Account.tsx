@@ -13,9 +13,11 @@ export type CustomerContact = {
 export default function Account({
     actor,
     customers,
+    staffManagementUrl,
 }: {
     actor: Actor;
     customers: (CustomerContact & { detailUrl: string })[];
+    staffManagementUrl?: string | null;
 }) {
     return (
         <>
@@ -39,6 +41,11 @@ export default function Account({
                     </ul>
                 )}
                 <Logout />
+                {staffManagementUrl && (
+                    <a href={staffManagementUrl}>
+                        Manage staff responsibilities
+                    </a>
+                )}
             </main>
         </>
     );
