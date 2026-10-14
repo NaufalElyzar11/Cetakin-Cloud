@@ -41,6 +41,11 @@ export default function Account({
                     </ul>
                 )}
                 <Logout />
+                {customers.length > 0 && (
+                    <p>
+                        <a href="/requests">Your print requests</a>
+                    </p>
+                )}
                 {staffManagementUrl && (
                     <a href={staffManagementUrl}>
                         Manage staff responsibilities

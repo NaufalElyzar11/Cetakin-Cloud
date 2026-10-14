@@ -8,6 +8,7 @@ RUN apt-get update \
 
 COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 COPY docker/dev/entrypoint.sh /usr/local/bin/cetakin-dev
+COPY docker/dev/uploads.ini /usr/local/etc/php/conf.d/cetakin-uploads.ini
 WORKDIR /workspace
 ENTRYPOINT ["sh", "/usr/local/bin/cetakin-dev"]
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000", "--no-reload"]

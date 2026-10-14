@@ -6,6 +6,10 @@ import Account from './pages/Access/Account';
 import Customer from './pages/Access/Customer';
 import Login from './pages/Access/Login';
 import Register from './pages/Access/Register';
+import Staff from './pages/Access/Staff';
+import RequestIndex from './pages/Intake/Index';
+import RequestCreate from './pages/Intake/Create';
+import RequestShow from './pages/Intake/Show';
 
 void createInertiaApp({
     resolve: (name) => {
@@ -20,6 +24,14 @@ void createInertiaApp({
                 return Account;
             case 'Access/Customer':
                 return Customer;
+            case 'Access/Staff':
+                return Staff;
+            case 'Intake/Index':
+                return RequestIndex;
+            case 'Intake/Create':
+                return RequestCreate;
+            case 'Intake/Show':
+                return RequestShow;
             default:
                 throw new Error('Unknown application page.');
         }
