@@ -75,7 +75,7 @@ PHP;
         }
     }
 
-    public function test_only_bootstrap_customer_identity_and_fixed_staff_management_routes_are_exposed(): void
+    public function test_only_bootstrap_access_and_owned_intake_routes_are_exposed(): void
     {
         $this->assertFalse(config('inertia.devtools.enabled'));
         $this->assertFalse(config('filesystems.disks.local.serve'));
@@ -83,9 +83,9 @@ PHP;
         $routes = app('router')->getRoutes()->getRoutes();
         $uris = array_map(fn ($route) => $route->uri(), $routes);
         sort($uris);
-        $this->assertSame(['/', 'account', 'account/customers/{customer}', 'login', 'login', 'logout', 'register', 'register', 'staff', 'staff/responsibilities', 'staff/responsibilities/{grant}/revoke', 'up'], $uris);
+        $this->assertSame(['/', 'account', 'account/customers/{customer}', 'login', 'login', 'logout', 'register', 'register', 'requests', 'requests', 'requests/attempts/{operationId}', 'requests/create', 'requests/{printRequest}', 'requests/{printRequest}/files/{file}', 'staff', 'staff/responsibilities', 'staff/responsibilities/{grant}/revoke', 'up'], $uris);
 
-        foreach (['_inertia/devtools/entries', '_inertia/devtools/entries/unknown', 'storage/bootstrap.txt', 'api/users', 'requests', 'orders', 'recovery', 'staff/recovery', 'access/bootstrap-owner'] as $path) {
+        foreach (['_inertia/devtools/entries', '_inertia/devtools/entries/unknown', 'storage/bootstrap.txt', 'api/users', 'orders', 'quotations', 'production', 'recovery', 'staff/recovery', 'access/bootstrap-owner'] as $path) {
             $this->get('/'.$path)->assertNotFound();
         }
 

@@ -2,11 +2,11 @@
 
 Cetakin Cloud is a production-oriented software engineering portfolio project for managing Cetakin, a real 3D printing business.
 
-Planning and architecture have been approved for implementation (G0). The application foundations and customer identity are CET-001–004. **CET-005** extends Access with fixed staff responsibilities, attributable revocation, trusted initial Owner provisioning and same-User credential recovery. It remains one Laravel + Inertia + React/TypeScript application without SSR. BD-01 v1 (2026-10-10) and BD-05 v1 (2026-10-12) are approved in the PRD; BD-02–04 and BD-06–17 remain OPEN. No later business capabilities are included.
+Planning and architecture have been approved for implementation (G0). CET-001–005 provide the application foundation and customer/staff Access. **CET-006** adds customer-owned custom FDM requests with exact private STL/3MF files and submitted-status confirmation, using synthetic records/designs only. It remains one Laravel + Inertia + React/TypeScript application without SSR. BD-01 v1 (2026-10-10) and BD-02/03/05 v1 (2026-10-12) are approved in the PRD; BD-04 and BD-06–17 remain OPEN. Real customer-design intake and production reliance are not authorized. Review, quotation, production and later file-storage workflows are not implemented.
 
 ## Windows container development
 
-Use Docker Desktop Linux containers and PowerShell; host PHP/Composer/Node are optional. Follow [DEVELOPMENT](docs/DEVELOPMENT.md) for isolated worktree setup, locked installation/build, PostgreSQL dev/test targets, migrations and cleanup. Start with `.\scripts\dev.ps1 setup`, then `install`, `build`, `start`, and `migrate`. Open the worktree-specific `.localhost` URL printed by `config` for `/register`, `/login` and `/account`. Each worktree has separate database/session/storage resources and host-only cookies. Run `.\scripts\quality.ps1` before a PR; the GitHub PR/main workflow uses the same gate. No deployment is configured.
+Use Docker Desktop Linux containers and PowerShell; host PHP/Composer/Node are optional. Follow [DEVELOPMENT](docs/DEVELOPMENT.md) for isolated worktree setup, locked installation/build, PostgreSQL dev/test targets, migrations and cleanup. Start with `.\scripts\dev.ps1 setup`, then `install`, `build`, `start`, and `migrate`. Open the worktree-specific `.localhost` URL printed by `config` for `/register`, `/login`, `/account` and `/requests`. Each worktree has separate database/session/storage resources and host-only cookies. Run `.\scripts\quality.ps1` before a PR; the GitHub PR/main workflow uses the same gate. No deployment is configured.
 
 ## Runtime and bootstrap checks
 
@@ -16,7 +16,9 @@ Use PHP 8.3 or a compatible newer supported PHP release, Composer 2, and Node.js
 
 For host asset development, run `npm run dev` in a second terminal. Stop it and remove an abandoned `public/hot` file before checking the production build. The documented Compose workflow instead uses compiled assets and isolated runtime resources.
 
-The bootstrap smoke suite explicitly uses file sessions/array cache to retain database-free checks. Access tests use guarded PostgreSQL and database sessions/cache. Follow DEVELOPMENT for the trusted CLI provisioning/recovery runbook and Owner-only responsibility management. Operator responsibility grants no access to absent future work records. Inertia DevTools recording and automatic filesystem serving/upload routes remain disabled. There is no email delivery, self-service reset, worker or public API.
+Use synthetic STL/3MF files only: select an authorized Customer, PETG, an approved color and a positive whole quantity of complete products/sets. The selected set is 1–5 files, at most 25 MiB each and 75 MiB combined. Confirmation means Submitted, awaiting manual review. Keep the attempt URL to check unknown outcomes or retry identical work; transfer progress alone is not confirmation. Uploaded bytes stay private and downloads check current access. See DEVELOPMENT for format/security bounds and failure behavior.
+
+The bootstrap smoke suite explicitly uses file sessions/array cache to retain database-free checks. Access and intake database cases use guarded PostgreSQL; pure rules/content cases and focused components supplement them. Follow DEVELOPMENT for the trusted CLI provisioning/recovery runbook and Owner-only responsibility management. Operator responsibility grants no access to absent future work records. Inertia DevTools recording and automatic filesystem serving/upload routes remain disabled. There is no email delivery, self-service reset, worker or public API.
 
 ## Module ownership convention
 

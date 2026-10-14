@@ -5,6 +5,9 @@
   "description": "Operational software for Cetakin's 3D printing business.",
   "require": {
     "php": "^8.3",
+    "ext-libxml": "*",
+    "ext-xmlreader": "*",
+    "ext-zip": "*",
     "inertiajs/inertia-laravel": "3.5.1",
     "laravel/framework": "13.35.0"
   },

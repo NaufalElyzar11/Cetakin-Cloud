@@ -1,0 +1,18 @@
+.intake-page select,
+.intake-page textarea {
+    font: inherit;
+    padding: 0.65rem;
+    border: 1px solid #65717b;
+    border-radius: 0.25rem;
+    min-width: 0;
+    background: #fff;
+}
+.intake-page textarea {
+    resize: vertical;
+}
+.intake-page progress {
+    max-width: 100%;
+}
+.intake-page li {
+    overflow-wrap: anywhere;
+}
