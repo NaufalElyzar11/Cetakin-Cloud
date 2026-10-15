@@ -522,3 +522,77 @@ test('unavailable exact version stays visible without download or substituted-fi
     );
     expect(screen.getByText(/file currently unavailable/)).toBeVisible();
 });
+
+test('customer sees only supplied safe review presence and terminal decline explanation', () => {
+    const { rerender } = render(
+        <Show
+            actor={actor}
+            request={{
+                ...request,
+                notes: null,
+                files: [submittedFile],
+                reviewOutcome: { reviewed: true, declineReason: null },
+            }}
+        />,
+    );
+    expect(screen.getByRole('status')).toHaveTextContent(
+        'Submitted — manual review recorded',
+    );
+    rerender(
+        <Show
+            actor={actor}
+            request={{
+                ...request,
+                status: 'DECLINED',
+                notes: null,
+                files: [submittedFile],
+                reviewOutcome: {
+                    reviewed: true,
+                    declineReason: 'We cannot provide this requested print.',
+                },
+            }}
+        />,
+    );
+    expect(screen.getByRole('status')).toHaveTextContent(
+        'Declined — this intake request is terminal',
+    );
+    expect(
+        screen.getByRole('heading', { name: 'Decline explanation' }),
+    ).toBeVisible();
+    expect(
+        screen.getByText('We cannot provide this requested print.'),
+    ).toBeVisible();
+    expect(
+        screen.queryByText(
+            /Internal review findings|Responsible staff|review basis/i,
+        ),
+    ).not.toBeInTheDocument();
+    expect(
+        screen.queryByRole('button', { name: /review|decline|assign/i }),
+    ).not.toBeInTheDocument();
+});
+
+test('owned list shows terminal decline rather than claiming it awaits review', () => {
+    render(
+        <Index
+            actor={actor}
+            customers={customers}
+            requests={[
+                {
+                    ...request,
+                    status: 'DECLINED',
+                    reviewOutcome: {
+                        reviewed: true,
+                        declineReason: 'Synthetic public reason.',
+                    },
+                },
+            ]}
+            createUrl="/requests/create"
+        />,
+    );
+    expect(screen.getByText(/Declined — intake request closed/)).toBeVisible();
+    expect(screen.getByText('Synthetic public reason.')).toBeVisible();
+    expect(
+        screen.queryByText(/awaiting manual review/),
+    ).not.toBeInTheDocument();
+});

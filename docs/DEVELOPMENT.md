@@ -1,6 +1,6 @@
-# Windows development — CET-001–007
+# Windows development — CET-001–008
 
-This is local infrastructure, not a production deployment. The base runtime has a PHP CLI Laravel development server with Composer and PostgreSQL. Node is a disposable build tool, not another application server. CET-004 adds customer identity/account access, database sessions and database-backed throttles. CET-005 adds fixed staff responsibilities and trusted provisioning/recovery to Access. CET-006 adds owned intake and private local file versions; CET-007 adds an optional compatible object service for synthetic integration. BD-01/02/03/05 are approved; BD-04 and BD-06–17 remain OPEN. Real customer-design intake, operational deletion and production reliance are prohibited until their business and readiness gates are adopted. No application worker, Redis or production deployment is added.
+This is local infrastructure, not a production deployment. The base runtime has a PHP CLI Laravel development server with Composer and PostgreSQL. Node is a disposable build tool, not another application server. CET-004 adds customer identity/account access, database sessions and database-backed throttles. CET-005 adds fixed staff responsibilities and trusted provisioning/recovery to Access. CET-006 adds owned intake and private local file versions; CET-007 adds an optional compatible object service for synthetic integration. CET-008 adds request-scoped Owner review, responsibility/next action and decline. BD-01/02/03/05 are approved; BD-04 and BD-06–17 remain OPEN. Real customer-design intake, operational deletion and production reliance are prohibited until their business and readiness gates are adopted; BD-13's operational error/hold procedure remains unresolved. No application worker, Redis or production deployment is added.
 
 ## Prerequisites
 
@@ -186,7 +186,7 @@ Local content is stored beneath the worktree's private volume, using generated a
 
 The supported STL validator checks nonempty exact binary records with finite numbers or bounded ASCII facet grammar (lines at most 8,192 bytes). 3MF checks ZIP integrity, package model relationships/content types, supported core hierarchy, object types, distinct triangle indices, basic mesh counts and safe internal build references using the [Consortium Core specification](https://github.com/3MFConsortium/spec_core/blob/master/3MF%20Core%20Specification.md). Technical guards cap 128 archive entries, 32 MiB expanded per entry, 100 MiB expanded total, 200:1 expansion, XML depth 64 and 1,000,000 reader nodes, 4,096 model objects, 16,384 component/build references and 15 seconds per file measured with a monotonic clock. Unsafe paths, external resource/entity processing, malformed structures and required unsupported extensions are rejected. These are bounded intake checks, not complete Core/extension conformance, geometry/manifold analysis, repair, slicing, previews, printability or malware certification. Uploaded content is never executed or extracted to uncontrolled paths.
 
-Use `.\scripts\quality.ps1` for the existing fail-closed gate. Intake rules, PostgreSQL associations/races and real private-local/object storage cases extend its existing discovery; synthetic fixture files are generated in isolated test roots/bucket prefixes rather than committed. CET-008 staff review and CET-009 replacement are not included. No real-design or production-reliance approval follows from a green synthetic test.
+Use `.\scripts\quality.ps1` for the existing fail-closed gate. Intake rules, PostgreSQL associations/races and real private-local/object storage cases extend its existing discovery; synthetic fixture files are generated in isolated test roots/bucket prefixes rather than committed. CET-008's synthetic staff review is described below; CET-009 clarification replies/replacement remain unimplemented. No real-design or production-reliance approval follows from a green synthetic test.
 
 ## CET-007 compatible synthetic object environment
 
@@ -215,6 +215,36 @@ Required S/P tests receive `CETAKIN_OBJECT_TEST_*` values only from the wrapper,
 Normal PostgreSQL tests and their local publication subprocesses force the private local test adapter and a unique test root, even when the application is configured with `DEV_DESIGN_OBJECT_DRIVER=s3`. The PowerShell wrapper also supplies `DESIGN_OBJECT_DRIVER=local` for test processes. Compatible-object cases deliberately select the separate guarded test bucket afterward; tests must never publish into the development bucket.
 
 Each project owns a distinct `object_data` volume and network, so tests/reset/cleanup cannot target another worktree. `stop` removes this project's containers/network while retaining volumes; `remove -ConfirmRemoveVolumes` includes inactive tools/objects profiles and disposes only this synthetic environment. To diagnose a capability failure, inspect `logs`, verify Docker availability and reinstall locked dependencies; do not disable private access, skip storage tests or point test settings at another service. No production storage vendor is chosen here.
+
+## CET-008 synthetic Owner review and decline
+
+Run `migrate`, `build` and `start` using the existing PowerShell wrapper after updating the checkout. No additional service, dependency or environment variable is required. Use the trusted CET-005 procedure below to provision an Owner on an explicitly identified synthetic User. Customer self-registration never grants review authority.
+
+Open `/staff/requests` as a current Owner. The paginated work list concerns actual submitted requests, not a separate Customer directory. It shows submission/specification, selected-file count, review/work disposition, next action and responsible coverage. Availability that has not been checked is unknown, not a promise that files exist. Missing assignment or revoked coverage remains visible; there is no invented deadline or escalation.
+
+Before examining designs or recording review/decline, explicitly assign that request to a current Owner, with a reason and next action. The assignment names the exact active Owner grant. Other Owners can coordinate reassignment but cannot download that request's designs or inspect its private notes/findings without its current assignment. Operator responsibility alone grants neither review authority nor design access. Assignment never creates a responsibility, and role regrant never silently restores an old assignment. This review-only integration creates no production records or generic task authorization platform.
+
+The assigned Owner examines the exact specification and selected file versions, and records manual completeness, material/color availability and feasibility findings. A sufficient review requires positive findings and successful verification of every exact file's size/digest. It is evidence of the manual review at that time, not printability certification, a quotation or production approval. The request stays `SUBMITTED`; there is no `REVIEWED` lifecycle state. `WAITING` and `BLOCKED` describe current work, not new request lifecycle states. No clarification question/reply or replacement workflow is implemented here.
+
+Effective review sufficiency must use the current exact basis and availability. A historical positive review remains retained when access is revoked or bytes become unavailable, but is not authority to quote. The work list does not perform remote reads of every design; a historical positive result therefore needs verification in the scoped detail. Later quotation/replacement features must recheck this guard rather than trusting a historical boolean. Technical outages or inadequate findings must not be represented as a completed sufficient review.
+
+Decline records separate internal and customer-safe explanations. It commits one terminal `DECLINED` result and retained attributed history; an exact retry returns the same result, while conflicting/stale decisions are rejected. It does not create an Order, cancel production or delete file versions. The completed review purpose no longer authorizes staff design downloads. A Customer's separately authorized access to their own retained request/files is unchanged. Customers receive the public outcome, never internal findings, staff history or the privileged work-list projection.
+
+File reads still pass the existing exact local/compatible adapter and attachment protections. Current Owner responsibility and the request assignment are checked before and after verified spooling. The page already being open does not grant continuing access. No reusable public object URL, credential or storage key is added to page props.
+
+### Transactions and synthetic acceptance
+
+Review/assignment/decline serialize with staff grant/revoke through the existing Access control row, then lock the actual Request and its current review work in that order. This Access lock precedes business-record locks; never acquire it after a Request lock. Remote file I/O occurs before the short decision transaction, outside SQL locks and retry loops. Revision/basis/current grant guards reject stale decisions; PostgreSQL retains the exact submitted fields and immutable review/assignment/decline evidence. This does not promise that storage can never fail after a successful read: future actions must verify current availability again.
+
+For a synthetic acceptance exercise:
+
+1. Register synthetic Customers A/B; submit valid synthetic STL/3MF work through the existing intake. Use a separately provisioned synthetic Owner; optionally grant a second Owner and an Operator for denial checks.
+2. From `/staff/requests`, confirm unassigned work is visible. Assign one actual request to the reviewing Owner, download its necessary design and record manual findings/next action. Verify the request remains `SUBMITTED` and the Customer sees only the safe outcome.
+3. Record an insufficient or waiting review without claiming sufficiency. Missing/corrupt/unavailable exact bytes must not yield an effective sufficient result.
+4. Decline a separate assigned request using distinct internal/public reasons. Revisit it as the Customer: only the public reason is visible, its files/history are retained and no quotation/Order exists. An exact repeated decline adds no consequential history.
+5. Leave a scoped review page open, revoke that Owner through another current Owner, and retry the download/action. The server must deny it. Regranting Owner responsibility alone must leave old coverage inactive until explicit reassignment. Customer B and an Operator must still be denied; a Customer/Owner's customer routes remain relationship-scoped.
+
+Use `.\scripts\quality.ps1` for F/P/S/C regressions and coordinated PostgreSQL races, including actual private local and compatible storage. Fixture roots/bucket prefixes remain test/worktree isolated. No real designs are permitted by this exercise. BD-04, BD-06 and BD-13 remain gates before real-design or operational reliance; no retention, factual-error correction/hold policy or other OPEN decision is adopted here.
 
 ## CET-005 staff access and trusted recovery
 
@@ -327,3 +357,64 @@ The actual storage preflight passed anonymous/cross-bucket/read-only denial, dev
 Code Reviewer closed one HIGH inherited-development-S3 test-target issue and three MEDIUM evidence issues: native concurrent PUT outcomes, compatible failure preservation/changed-payload rejection, and savepoint-only lost-response evidence. Tests now prove the corrected boundaries, and HTTP recovery preserves foreign/revoked denial. Reality Checker independently accepted the scoped synthetic result with no BLOCKER/HIGH/MEDIUM. One LOW limitation remains: a repeated `remove` call after the same claim is already `DELETED` is rejected; the verified result remains available in durable state. Interrupted deletion before that state can be retried under its retained claim. No operational deletion route is enabled.
 
 Hosted GitHub Actions, browser acceptance, production-provider capabilities/durability and real-data deletion compliance were **not run or certified**. Confirmed results never become pending when storage is unavailable; active/uncertain writers never expire into unused classification. BD-04 and BD-06–17 remain OPEN, and backup/recovery-copy deletion is not implied. Composer license/exact-pin warnings and the npm update notice remain non-blocking. No retention duration, worker, Redis, production provider selection or CET-008 functionality was introduced. This record supports CET-007's scoped synthetic DoD, not operational reliance.
+
+## CET-008 validation record — 2026-10-15
+
+Started from clean branch `codex/cet-008-staff-review`, with CET-007 integrated at `0947294` (`merge: complete CET-007 object reconciliation`). Existing worktree runtime resources were reused; no service, dependency, production provider or CI requirement was added. The additive development migration completed without reset. Both guarded development/test targets reported PostgreSQL 18.6; Compose configuration, service health, `/up` and the neutral bootstrap page passed.
+
+The complete `.\scripts\quality.ps1` exited zero after the final implementation/review fixes:
+
+| Evidence | Actual result |
+| --- | --- |
+| PostgreSQL/U/F/P/S suite, including CET-001–007 regressions | 122 tests, 1,230 assertions passed |
+| New CET-008 cases, included in that total | 20 tests, 311 assertions passed |
+| Database-free bootstrap smoke | 5 tests, 35 assertions passed |
+| React component suite | 43 tests across 6 files passed |
+| PHP syntax / Pint / PHPStan level 5 | Passed; 80 syntax-checked source files, no static errors |
+| Prettier / TypeScript / production Vite build | Passed |
+| Composer validation/platform and dependency audits | Passed; Composer/npm reported no vulnerability advisories |
+| Secret/generated-file inventory | Passed for 171 Git-visible files |
+
+Five new race cases used independent PHP processes/PostgreSQL connections with observed database-lock barriers: review versus decline, reassignment before review, revocation before review, target revocation before assignment, and assignment before revocation. Assertions checked committed history/current coverage/state, not just HTTP status. The real compatible-storage cases verified exact scoped downloads, Customer isolation/revocation, missing/corrupt/uncertain objects, revocation after spooling and revocation before a manual-review commit. File checks precede short SQL decision locks. Clean migration and representative CET-007 migration tests retained existing actors, relationships, sessions, grants, requests, exact file versions and object-intent facts.
+
+A temporary acceptance probe exercised normal non-test-mode HTTP with database sessions, current Inertia asset version and CSRF protection, using only the guarded synthetic test database. Its successful run passed 40 checks: actual work-list/assignment, exact attachment bytes, missing-token rejection (419), manual sufficient review retaining `SUBMITTED`, terminal decline, exact retry without duplicate history, customer-safe public reason, foreign/Operator/unassigned-Owner denials, revocation after page load and no implicit scope restoration after regrant. Initial probe setup needed the framework's public-directory server working directory and current asset version; these were probe corrections, with no application bypass. The temporary server, probe source, fixture bytes and database records were cleaned afterward. This is actual HTTP acceptance evidence, not visual browser certification.
+
+Code Reviewer closed three MEDIUM findings: nullable required-fact constraint bypass, stale/terminal projection coherence, and initial `DECLINED` insertion bypass. Direct PostgreSQL negatives and terminal regressions cover the fixes. Reality Checker closed a MEDIUM missing review-commit-during-read revocation case and a LOW assignment wording issue. Both independent source rechecks reported no remaining actionable findings. No required tests were skipped or weakened.
+
+### CET-008 change inventory
+
+Created (14 files):
+
+- `app/Intake/RequestReview.php`
+- `app/Intake/Http/ReviewController.php`
+- `database/migrations/2026_10_15_000000_add_request_review_work.php`
+- `resources/js/pages/Review/Index.tsx`
+- `resources/js/pages/Review/Show.tsx`
+- `resources/js/pages/Review/types.ts`
+- `resources/js/pages/Review/review.css`
+- `resources/js/pages/Review/Review.test.tsx`
+- `tests/Database/Intake/RequestReviewTest.php`
+- `tests/Database/Intake/ReviewConcurrencyTest.php`
+- `tests/Database/Intake/ReviewMigrationTest.php`
+- `tests/Database/Intake/ReviewStorageTest.php`
+- `tests/Support/ReviewFixtures.php`
+- `tests/Support/review-race-worker.php`
+
+Modified (12 files):
+
+- `README.md`
+- `docs/DEVELOPMENT.md`
+- `app/Intake/Http/RequestController.php`
+- `routes/web.php`
+- `tests/Bootstrap/BootstrapTest.php`
+- `resources/js/app.tsx`
+- `resources/js/app.test.tsx`
+- `resources/js/pages/Access/Staff.tsx`
+- `resources/js/pages/Intake/Index.tsx`
+- `resources/js/pages/Intake/Show.tsx`
+- `resources/js/pages/Intake/types.ts`
+- `resources/js/pages/Intake/Intake.test.tsx`
+
+The migration adds immutable `request_review_events` and current `request_review_work`, grant/actor/request provenance, revision consistency and one-decline guards. It permits only attributed `SUBMITTED` → `DECLINED` while retaining all fixed submission fields and existing exact-object protections. Rollback refuses to erase recorded review history; use a reviewed forward migration once decisions exist.
+
+Hosted GitHub Actions and visual/browser acceptance were **not run**; the unchanged workflow discovers the new cases through the existing gate. Composer's pre-existing license/exact-version warnings and npm's update notice remain informational. There is no new real-design, retention/deletion or operational error/hold approval. BD-04 and BD-06–17, including BD-13, remain OPEN. Only synthetic records/files were used, CET-009 was not started, and this evidence supports CET-008's scoped local DoD rather than production reliance.

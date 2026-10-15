@@ -9,7 +9,8 @@ export type RequestSummary = {
     material: string;
     color: string;
     quantity: string;
-    status: 'SUBMITTED';
+    status: 'SUBMITTED' | 'DECLINED';
+    reviewOutcome?: { reviewed: boolean; declineReason: string | null };
     submittedAt: string;
     detailUrl: string;
 };

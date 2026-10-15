@@ -49,6 +49,9 @@ export default function Staff({
                     Acting as {actor.email}. Operator responsibility alone
                     grants no production-work access.
                 </p>
+                <p>
+                    <a href="/staff/requests">Request review work list</a>
+                </p>
                 {status && <p role="status">{status}</p>}
                 <FormFeedback
                     errors={{ ...form.errors, ...revoke.errors }}
