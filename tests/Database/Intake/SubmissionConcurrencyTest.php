@@ -50,7 +50,7 @@ class SubmissionConcurrencyTest extends PostgresTestCase
     {
         $stream = new InputStream;
         $stream->write(json_encode($input, JSON_THROW_ON_ERROR)."\n");
-        $process = new Process([PHP_BINARY, base_path('tests/Support/submission-race-worker.php')], base_path(), timeout: 25);
+        $process = new Process([PHP_BINARY, base_path('tests/Support/submission-race-worker.php')], base_path(), ['DESIGN_OBJECT_DRIVER' => 's3', 'CETAKIN_S3_BUCKET' => 'synthetic-development-bucket-never-use'], timeout: 25);
         $process->setInput($stream);
         $process->start();
         $this->workers[] = $process;

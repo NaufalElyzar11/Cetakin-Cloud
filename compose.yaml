@@ -28,6 +28,12 @@ services:
       LOG_LEVEL: warning
       CETAKIN_DEV_CONTAINER: "1"
       CETAKIN_DEV_PROJECT: ${DEV_PROJECT:?}
+      DESIGN_OBJECT_DRIVER: ${DEV_DESIGN_OBJECT_DRIVER:-local}
+      CETAKIN_S3_ENDPOINT: http://objectstore:8333
+      CETAKIN_S3_BUCKET: cetakin-dev-${DEV_WORKTREE_ID:?}
+      CETAKIN_S3_KEY: ${DEV_PROJECT:?}-dev
+      CETAKIN_S3_SECRET: ${DEV_PROJECT:?}-dev-synthetic-only
+      CETAKIN_S3_REGION: us-east-1
     ports:
       - "127.0.0.1:${DEV_APP_PORT:?}:8000"
     volumes:
@@ -80,9 +86,32 @@ services:
       cetakin.worktree-id: ${DEV_WORKTREE_ID:?}
     command: ["npm", "run", "build"]
 
+  # Compatible synthetic integration only; no production provider is selected.
+  objectstore:
+    image: chrislusf/seaweedfs:4.48@sha256:4e61d15fd35994cb1e43e1e553dff106794841fd9a99ade2fc8c8bfce4d7872d
+    profiles: [objects]
+    init: true
+    working_dir: /data
+    entrypoint: ["sh", "/etc/cetakin/object-store.sh"]
+    environment:
+      CETAKIN_DEV_PROJECT: ${DEV_PROJECT:?}
+      CETAKIN_DEV_WORKTREE_ID: ${DEV_WORKTREE_ID:?}
+    volumes:
+      - object_data:/data
+      - ./docker/dev/object-store.sh:/etc/cetakin/object-store.sh:ro
+    labels:
+      cetakin.worktree-id: ${DEV_WORKTREE_ID:?}
+    healthcheck:
+      test: ["CMD-SHELL", "wget -S -O /dev/null http://127.0.0.1:8333/ 2>&1 | grep -q '403 Forbidden'"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+
 volumes:
   postgres_data:
   vendor:
   node_modules:
   app_storage:
   bootstrap_cache:
+  object_data:

@@ -8,6 +8,7 @@
     "ext-libxml": "*",
     "ext-xmlreader": "*",
     "ext-zip": "*",
+    "aws/aws-sdk-php": "3.401.1",
     "inertiajs/inertia-laravel": "3.5.1",
     "laravel/framework": "13.35.0"
   },

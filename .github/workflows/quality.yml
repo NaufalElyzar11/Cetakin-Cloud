@@ -26,7 +26,7 @@ jobs:
         run: ./scripts/dev.ps1 install
       - name: Start local application and PostgreSQL
         run: ./scripts/dev.ps1 start
-      - name: Run the same fail-closed quality gate
+      - name: Run the same fail-closed quality gate including private compatible objects
         run: ./scripts/quality.ps1
       - name: Remove only this job's local resources
         if: always()

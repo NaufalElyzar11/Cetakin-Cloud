@@ -2,11 +2,13 @@
 
 Cetakin Cloud is a production-oriented software engineering portfolio project for managing Cetakin, a real 3D printing business.
 
-Planning and architecture have been approved for implementation (G0). CET-001–005 provide the application foundation and customer/staff Access. **CET-006** adds customer-owned custom FDM requests with exact private STL/3MF files and submitted-status confirmation, using synthetic records/designs only. It remains one Laravel + Inertia + React/TypeScript application without SSR. BD-01 v1 (2026-10-10) and BD-02/03/05 v1 (2026-10-12) are approved in the PRD; BD-04 and BD-06–17 remain OPEN. Real customer-design intake and production reliance are not authorized. Review, quotation, production and later file-storage workflows are not implemented.
+Planning and architecture have been approved for implementation (G0). CET-001–005 provide the application foundation and customer/staff Access. CET-006 adds customer-owned custom FDM requests with exact private STL/3MF files and submitted-status confirmation. **CET-007** extends that flow with a private compatible object adapter and bounded intent reconciliation, using synthetic records/objects only. It remains one Laravel + Inertia + React/TypeScript application without SSR. BD-01 v1 (2026-10-10) and BD-02/03/05 v1 (2026-10-12) are approved in the PRD; BD-04 and BD-06–17 remain OPEN. Real customer-design intake, operational deletion and production reliance are not authorized. Review, quotation, production and later business workflows are not implemented.
 
 ## Windows container development
 
 Use Docker Desktop Linux containers and PowerShell; host PHP/Composer/Node are optional. Follow [DEVELOPMENT](docs/DEVELOPMENT.md) for isolated worktree setup, locked installation/build, PostgreSQL dev/test targets, migrations and cleanup. Start with `.\scripts\dev.ps1 setup`, then `install`, `build`, `start`, and `migrate`. Open the worktree-specific `.localhost` URL printed by `config` for `/register`, `/login`, `/account` and `/requests`. Each worktree has separate database/session/storage resources and host-only cookies. Run `.\scripts\quality.ps1` before a PR; the GitHub PR/main workflow uses the same gate. No deployment is configured.
+
+Local private storage remains the default. The quality gate starts an isolated, pinned SeaweedFS compatible test service and verifies authenticated/private conditional writes. See DEVELOPMENT for `storage-start`, optional synthetic adapter selection, scoped test cleanup and the limits of this compatibility evidence; no production storage vendor is selected.
 
 ## Runtime and bootstrap checks
 
