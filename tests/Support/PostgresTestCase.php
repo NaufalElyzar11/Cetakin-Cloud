@@ -26,6 +26,10 @@ abstract class PostgresTestCase extends TestCase
         // The private volume belongs to this worktree; each test has its own
         // root. Never reuse application designs or a public disk.
         $this->privateTestRoot = $app->storagePath('app/private/tests/'.getmypid().'-'.bin2hex(random_bytes(8)));
+        // Development may intentionally select S3, but ordinary tests must
+        // never inherit its bucket/credentials. CompatibleObjects explicitly
+        // selects the separately guarded disposable test bucket afterward.
+        $app['config']->set('filesystems.design_objects.driver', 'local');
         $app['config']->set('filesystems.disks.local.root', $this->privateTestRoot);
 
         return $app;

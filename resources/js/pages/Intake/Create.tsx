@@ -43,6 +43,7 @@ export default function Create({
     operationId,
     storeUrl,
     checkUrl,
+    reconcileUrl,
     limits,
     attemptStatus,
 }: {
@@ -51,6 +52,7 @@ export default function Create({
     operationId: string;
     storeUrl: string;
     checkUrl: string;
+    reconcileUrl?: string | null;
     limits: UploadLimits;
     attemptStatus?: 'UNRESOLVED' | 'NOT_RECEIVED' | null;
 }) {
@@ -107,6 +109,33 @@ export default function Create({
                 preserveScroll: true,
                 onStart: () => setStage('checking'),
                 onSuccess: () => setStage('unconfirmed'),
+                onHttpException,
+                onNetworkError,
+                onFinish: () =>
+                    setStage((current) =>
+                        current === 'checking' ? 'unconfirmed' : current,
+                    ),
+            },
+        );
+    }
+    function recoverResult() {
+        if (!reconcileUrl) return;
+        setFailure('');
+        router.post(
+            reconcileUrl,
+            {},
+            {
+                preserveState: true,
+                preserveScroll: true,
+                onStart: () => setStage('checking'),
+                onSuccess: () => setStage('unconfirmed'),
+                onError: (rejections) => {
+                    setStage('unconfirmed');
+                    setFailure(
+                        rejections.submission ??
+                            'Recovery did not confirm submission. Check this attempt or retry its unchanged files and specification.',
+                    );
+                },
                 onHttpException,
                 onNetworkError,
                 onFinish: () =>
@@ -469,6 +498,21 @@ export default function Create({
                         Check this attempt result
                     </button>
                 </p>
+                {reconcileUrl && attemptStatus === 'UNRESOLVED' && (
+                    <p>
+                        <button
+                            type="button"
+                            disabled={pending}
+                            onClick={recoverResult}
+                        >
+                            Check and recover stored files
+                        </button>{' '}
+                        This can confirm the same attempt only when all its
+                        exact files are available. Missing files require an
+                        unchanged retry; this action does not itself confirm
+                        submission.
+                    </p>
+                )}
                 <p>
                     To change an unresolved attempt, first check its result,
                     then deliberately{' '}

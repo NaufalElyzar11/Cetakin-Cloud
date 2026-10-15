@@ -14,6 +14,7 @@ $app = require dirname(__DIR__, 2).'/bootstrap/app.php';
 PostgresGuard::beforeBootstrap($app);
 $app->make(Kernel::class)->bootstrap();
 $postgres = PostgresGuard::connection($app, true);
+$app['config']->set('filesystems.design_objects.driver', 'local');
 $app['config']->set('filesystems.disks.local.root', $input['root']);
 $app->bind(PrivateDesignFiles::class, fn () => new class extends PrivateDesignFiles
 {

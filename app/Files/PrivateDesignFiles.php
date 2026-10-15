@@ -5,8 +5,8 @@ namespace App\Files;
 use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
-/** Local-only, immutable publication. Object adapters/reconciliation are CET-007. */
-class PrivateDesignFiles
+/** Private local exact objects; the CET-006 identities/publication hooks are retained. */
+class PrivateDesignFiles implements ExactDesignObjects
 {
     public function path(string $attempt, string $file): string
     {
@@ -72,5 +72,41 @@ class PrivateDesignFiles
         if (! is_file($path) || is_link($path) || filesize($path) !== $size || hash_file('sha256', $path) !== $digest) {
             throw new RuntimeException('The exact private file is unavailable or its integrity cannot be confirmed.');
         }
+    }
+
+    public function read(string $attempt, array $file): VerifiedDesignRead
+    {
+        $path = $this->path($attempt, $file['id']);
+        if (! is_file($path)) {
+            throw new ObjectUnavailable('MISSING');
+        }
+        if (is_link($path)) {
+            throw new ObjectUnavailable('CORRUPT');
+        }
+        $input = @fopen($path, 'rb');
+        if ($input === false) {
+            throw new ObjectUnavailable('UNKNOWN');
+        }
+        try {
+            return VerifiedDesignRead::copy($input, $file['size'], $file['digest']);
+        } finally {
+            fclose($input);
+        }
+    }
+
+    public function remove(string $attempt, string $file): void
+    {
+        $path = $this->path($attempt, $file);
+        if (is_link($path) || (file_exists($path) && ! @unlink($path))) {
+            throw new ObjectUnavailable('UNKNOWN');
+        }
+    }
+
+    public function absent(string $attempt, string $file): bool
+    {
+        $path = $this->path($attempt, $file);
+        clearstatcache(true, $path);
+
+        return ! file_exists($path) && ! is_link($path);
     }
 }

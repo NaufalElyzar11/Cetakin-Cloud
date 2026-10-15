@@ -3,7 +3,9 @@
 namespace App\Intake;
 
 use App\Access\Models\User;
-use App\Files\PrivateDesignFiles;
+use App\Files\DesignObjectStores;
+use App\Files\ObjectUnavailable;
+use App\Files\SubmissionObjects;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
@@ -11,7 +13,7 @@ use RuntimeException;
 
 final class SubmitPrintRequest
 {
-    public function __construct(private PrivateDesignFiles $files) {}
+    public function __construct(private DesignObjectStores $stores, private SubmissionObjects $objects) {}
 
     /**
      * @param  array{material:string,color:string,quantity:string,notes:?string}  $specification
@@ -29,6 +31,7 @@ final class SubmitPrintRequest
                 'operation_id' => $operation, 'payload_digest' => $payload,
                 'specification' => json_encode($specification, JSON_THROW_ON_ERROR),
                 'manifest' => json_encode($manifest, JSON_THROW_ON_ERROR), 'created_at' => now(),
+                ...$this->stores->selectedIdentity(),
             ]);
             $attempt = DB::table('submission_attempts')->where('actor_id', $actor->id)->where('operation_id', $operation)->first();
             if ($attempt === null || $attempt->customer_id !== $customer || ! hash_equals($attempt->payload_digest, $payload)) {
@@ -43,14 +46,32 @@ final class SubmitPrintRequest
         $manifest = json_decode($attempt->manifest, true, flags: JSON_THROW_ON_ERROR);
         // File I/O is deliberately outside the short PostgreSQL locks. Durable
         // intent protects the same exact objects through write/commit failures.
-        foreach ($manifest as $index => $file) {
-            $this->files->publish($attempt->id, $file, $uploads[$index]['path']);
-        }
-        foreach ($manifest as $file) {
-            $this->files->verify($this->files->path($attempt->id, $file['id']), $file['size'], $file['digest']);
-        }
+        $this->objects->publish($attempt, $this->stores->forAttempt($attempt), $manifest, $uploads);
 
         return $this->confirm($actor->id, $customer, $attempt->id, $manifest, $specification);
+    }
+
+    /** Bounded same-intent recovery; only the original actor's current owned attempt. */
+    public function reconcile(User $actor, string $operation): string
+    {
+        $attempt = DB::table('submission_attempts')->where('actor_id', $actor->id)->where('operation_id', $operation)->first();
+        abort_if($attempt === null, 404);
+        $relationship = DB::table('customer_user')->where('user_id', $actor->id)->where('customer_id', $attempt->customer_id)->whereNull('revoked_at')->exists();
+        abort_unless($relationship, 404);
+        if ($attempt->request_id !== null) {
+            return $attempt->request_id;
+        }
+        $guard = DB::table('submission_object_guards')->where('attempt_id', $attempt->id)->first();
+        if ($guard === null || $guard->state !== 'OPEN') {
+            throw new ObjectUnavailable('REJECTED');
+        }
+        $manifest = json_decode($attempt->manifest, true, flags: JSON_THROW_ON_ERROR);
+        $store = $this->stores->forAttempt($attempt);
+        foreach ($manifest as $file) {
+            $store->read($attempt->id, $file)->close();
+        }
+
+        return $this->confirm($actor->id, $attempt->customer_id, $attempt->id, $manifest, json_decode($attempt->specification, true, flags: JSON_THROW_ON_ERROR));
     }
 
     /** @param list<array{id:string,name:string,format:string,size:int,digest:string}> $manifest
@@ -66,6 +87,10 @@ final class SubmitPrintRequest
             }
             if ($attempt->request_id !== null) {
                 return $attempt->request_id;
+            }
+            $guard = DB::table('submission_object_guards')->where('attempt_id', $attemptId)->lockForUpdate()->first();
+            if ($guard === null || $guard->state !== 'OPEN') {
+                throw new ObjectUnavailable('REJECTED');
             }
             $id = (string) Str::uuid();
             $submitted = now();

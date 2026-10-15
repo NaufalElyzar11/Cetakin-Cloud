@@ -6,8 +6,9 @@ use App\Access\Models\Customer;
 use App\Access\Models\User;
 use App\Files\DesignContent;
 use App\Files\DesignFileVersion;
+use App\Files\DesignObjectStores;
 use App\Files\FileSelection;
-use App\Files\PrivateDesignFiles;
+use App\Files\ObjectUnavailable;
 use App\Intake\Models\PrintRequest;
 use App\Intake\SubmissionSpecification;
 use App\Intake\SubmitPrintRequest;
@@ -21,8 +22,9 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use RuntimeException;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\HeaderUtils;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class RequestController
 {
@@ -75,6 +77,7 @@ class RequestController
             'customers' => $actor->customers()->wherePivotNull('revoked_at')->orderBy('customers.id')->get()->map(fn (Customer $customer) => $customer->only('id', 'name')),
             'operationId' => $operation, 'storeUrl' => route('requests.store'),
             'checkUrl' => route('requests.attempt', ['operationId' => $operation]),
+            'reconcileUrl' => $status === 'UNRESOLVED' ? route('requests.reconcile', ['operationId' => $operation]) : null,
             'attemptStatus' => $status,
             'limits' => ['maxFiles' => FileSelection::MAX_FILES, 'maxFileBytes' => FileSelection::MAX_FILE_BYTES, 'maxTotalBytes' => FileSelection::MAX_TOTAL_BYTES],
         ]);
@@ -110,20 +113,36 @@ class RequestController
         return redirect()->route('requests.show', ['printRequest' => $id], 303);
     }
 
-    public function show(Request $request, PrintRequest $printRequest, PrivateDesignFiles $storage): Response
+    public function reconcile(Request $request, string $operationId, SubmitPrintRequest $submit): RedirectResponse
+    {
+        $actor = $this->actor($request);
+        try {
+            $id = $submit->reconcile($actor, $operationId);
+        } catch (RuntimeException $exception) {
+            if ($exception instanceof HttpExceptionInterface) {
+                throw $exception;
+            }
+            throw ValidationException::withMessages(['submission' => 'This attempt could not be confirmed from the stored exact files. It remains unresolved or unavailable; retry unchanged work or check again later.']);
+        }
+
+        return redirect()->route('requests.show', ['printRequest' => $id], 303);
+    }
+
+    public function show(Request $request, PrintRequest $printRequest, DesignObjectStores $stores): Response
     {
         $actor = $this->actor($request);
         $customer = Customer::findOrFail($printRequest->customer_id);
         abort_unless(Gate::allows('view', $customer), 404);
         $files = DesignFileVersion::query()->where('request_id', $printRequest->id)->orderBy('position')->get();
+        $attempt = DB::table('submission_attempts')->where('id', $printRequest->attempt_id)->first();
 
         return Inertia::render('Intake/Show', [
             'actor' => $actor->only('id', 'name', 'email'),
             'request' => [...$this->projection($printRequest, $customer), 'notes' => $printRequest->notes,
-                'files' => $files->map(function (DesignFileVersion $file) use ($storage, $printRequest): array {
+                'files' => $files->map(function (DesignFileVersion $file) use ($stores, $attempt, $printRequest): array {
                     $available = true;
                     try {
-                        $storage->verify($storage->path($file->attempt_id, $file->id), $file->size_bytes, $file->digest);
+                        $stores->forAttempt($attempt)->read($file->attempt_id, ['id' => $file->id, 'size' => $file->size_bytes, 'digest' => $file->digest])->close();
                     } catch (RuntimeException $exception) {
                         $available = false;
                     }
@@ -135,21 +154,31 @@ class RequestController
         ]);
     }
 
-    public function download(Request $request, PrintRequest $printRequest, DesignFileVersion $file, PrivateDesignFiles $storage): BinaryFileResponse
+    public function download(Request $request, PrintRequest $printRequest, DesignFileVersion $file, DesignObjectStores $stores): StreamedResponse
     {
         $this->actor($request);
         $customer = Customer::findOrFail($printRequest->customer_id);
         abort_unless($file->request_id === $printRequest->id && Gate::allows('view', $customer), 404);
-        $path = $storage->path($file->attempt_id, $file->id);
+        $attempt = DB::table('submission_attempts')->where('id', $file->attempt_id)->first();
         try {
-            $storage->verify($path, $file->size_bytes, $file->digest);
+            $read = $stores->forAttempt($attempt)->read($file->attempt_id, ['id' => $file->id, 'size' => $file->size_bytes, 'digest' => $file->digest]);
         } catch (RuntimeException $exception) {
+            if ($exception instanceof ObjectUnavailable && $exception->outcome === 'UNKNOWN') {
+                abort(503, 'The exact file cannot be verified right now. No replacement content has been served.');
+            }
             abort(410, 'The exact submitted file is currently unavailable. The request and version history remain retained.');
         }
         // A prior browser page or already-resolved metadata is not authority.
         abort_unless(Gate::allows('view', $customer), 404);
 
-        return response()->file($path, [
+        return response()->stream(function () use ($read): void {
+            try {
+                fpassthru($read->stream());
+            } finally {
+                $read->close();
+            }
+        }, 200, [
+            'Content-Length' => (string) $file->size_bytes,
             'Content-Type' => 'application/octet-stream',
             'Content-Disposition' => HeaderUtils::makeDisposition('attachment', $file->original_name, 'design.'.strtolower($file->format)),
             'X-Content-Type-Options' => 'nosniff', 'Cache-Control' => 'private, no-store',

@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('setup', 'config', 'start', 'stop', 'status', 'install', 'build', 'test', 'quality', 'migrate', 'db-check', 'test-db-check', 'test-reset', 'config-clear', 'logs', 'remove')]
+    [ValidateSet('setup', 'config', 'start', 'stop', 'status', 'install', 'build', 'test', 'quality', 'migrate', 'db-check', 'test-db-check', 'test-reset', 'config-clear', 'logs', 'remove', 'storage-start', 'storage-check')]
     [string] $Action = 'status',
     [int] $AppPort = 0,
     [int] $DatabasePort = 0,
@@ -60,6 +60,7 @@ if ($Action -eq 'setup') {
         'DEV_ADMIN_PASSWORD=cetakin_local_admin_only'
         'DEV_DB_PASSWORD=cetakin_local_dev_only'
         'DEV_TEST_PASSWORD=cetakin_local_test_only'
+        'DEV_DESIGN_OBJECT_DRIVER=local'
     )
     [IO.File]::WriteAllLines($taskEnvPath, $taskEnvironment, [Text.UTF8Encoding]::new($false))
     Write-Output "Created ignored .env.docker for $taskProject. Browser URL http://$taskProject.localhost`:$AppPort; PostgreSQL port $DatabasePort."
@@ -75,6 +76,9 @@ foreach ($taskLine in [IO.File]::ReadAllLines($taskEnvPath)) {
     $taskSettings[$taskPair[0]] = $taskPair[1]
 }
 $taskKeys = @('DEV_PROJECT', 'DEV_WORKTREE_ID', 'DEV_APP_PORT', 'DEV_DB_PORT', 'DEV_APP_KEY', 'DEV_ADMIN_PASSWORD', 'DEV_DB_PASSWORD', 'DEV_TEST_PASSWORD')
+# Existing CET-002 environments retain the local adapter without regeneration.
+if (-not $taskSettings.ContainsKey('DEV_DESIGN_OBJECT_DRIVER')) { $taskSettings.DEV_DESIGN_OBJECT_DRIVER = 'local' }
+$taskKeys += 'DEV_DESIGN_OBJECT_DRIVER'
 if ($taskSettings.Count -ne $taskKeys.Count) { throw 'Unexpected environment keys; use the local example.' }
 foreach ($taskSettingKey in $taskKeys) { if (-not $taskSettings.ContainsKey($taskSettingKey) -or $taskSettings[$taskSettingKey] -eq '') { throw "Missing local setting $taskSettingKey." } }
 if ($taskSettings.DEV_PROJECT -ne $taskProject -or $taskSettings.DEV_WORKTREE_ID -ne $taskId) { throw 'Environment belongs to a different worktree. Generate a new one in this checkout.' }
@@ -82,6 +86,7 @@ foreach ($taskPortKey in @('DEV_APP_PORT', 'DEV_DB_PORT')) {
     if ($taskSettings[$taskPortKey] -notmatch '^\d+$' -or [int]$taskSettings[$taskPortKey] -lt 1024 -or [int]$taskSettings[$taskPortKey] -gt 65535) { throw 'Invalid local port.' }
 }
 if ($taskSettings.DEV_APP_PORT -eq $taskSettings.DEV_DB_PORT) { throw 'Application and database ports must differ.' }
+if ($taskSettings.DEV_DESIGN_OBJECT_DRIVER -notin @('local', 's3')) { throw 'Choose local or s3 for the synthetic design adapter.' }
 
 # Explicitly set interpolation values: inherited shell variables must not redirect targets.
 $taskPreviousEnvironment = @{}
@@ -93,11 +98,28 @@ $taskPreviousLocation = Get-Location
 try {
     Set-Location -LiteralPath $taskRoot
     Invoke-TaskCompose -Arguments @('config', '--quiet')
-    $taskTestEnvironment = @('-e', 'APP_ENV=testing', '-e', 'DB_DATABASE=cetakin_test', '-e', 'DB_USERNAME=cetakin_test', '-e', "DB_PASSWORD=$($taskSettings.DEV_TEST_PASSWORD)")
+    $taskTestEnvironment = @('-e', 'APP_ENV=testing', '-e', 'DESIGN_OBJECT_DRIVER=local', '-e', 'DB_DATABASE=cetakin_test', '-e', 'DB_USERNAME=cetakin_test', '-e', "DB_PASSWORD=$($taskSettings.DEV_TEST_PASSWORD)")
+    $taskTestEnvironment += @(
+        '-e', 'CETAKIN_OBJECT_TEST_ENDPOINT=http://objectstore:8333',
+        '-e', "CETAKIN_OBJECT_TEST_BUCKET=cetakin-test-$taskId",
+        '-e', "CETAKIN_OBJECT_TEST_KEY=$taskProject-test",
+        '-e', "CETAKIN_OBJECT_TEST_SECRET=$taskProject-test-synthetic-only",
+        '-e', 'CETAKIN_OBJECT_TEST_REGION=us-east-1',
+        '-e', "CETAKIN_OBJECT_TEST_DENIED_KEY=$taskProject-readonly",
+        '-e', "CETAKIN_OBJECT_TEST_DENIED_SECRET=$taskProject-readonly-synthetic-only",
+        '-e', 'CETAKIN_OBJECT_TEST_DISPOSABLE=1'
+    )
+    function Start-TaskObjects {
+        Invoke-TaskCompose -Arguments @('--profile', 'objects', 'up', '--detach', '--wait', 'objectstore')
+        Invoke-TaskCompose -Arguments @('exec', '-T', 'app', 'php', 'scripts/dev/object-store.php', 'init')
+    }
     switch ($Action) {
         'config' { Write-Output "Compose configuration is valid. Browser URL http://$taskProject.localhost`:$($taskSettings.DEV_APP_PORT)." }
-        'start' { Invoke-TaskCompose -Arguments @('up', '--detach', '--build', '--wait', 'app', 'postgres') }
-        'stop' { Invoke-TaskCompose -Arguments @('down') }
+        'start' {
+            Invoke-TaskCompose -Arguments @('up', '--detach', '--build', '--wait', 'app', 'postgres')
+            if ($taskSettings.DEV_DESIGN_OBJECT_DRIVER -eq 's3') { Start-TaskObjects }
+        }
+        'stop' { Invoke-TaskCompose -Arguments @('--profile', 'objects', 'down') }
         'status' { Invoke-TaskCompose -Arguments @('ps', '--all') }
         'install' {
             Invoke-TaskCompose -Arguments @('build', 'app')
@@ -109,6 +131,7 @@ try {
             Invoke-TaskCompose -Arguments @('run', '--rm', '--no-deps', 'node', 'npm', 'run', 'build')
         }
         'test' {
+            Start-TaskObjects
             Invoke-TaskCompose -Arguments (@('exec', '-T') + $taskTestEnvironment + @('app', 'php', 'scripts/dev/database.php', 'test-check'))
             Invoke-TaskCompose -Arguments (@('exec', '-T') + $taskTestEnvironment + @('app', 'composer', 'test:bootstrap'))
             Invoke-TaskCompose -Arguments (@('exec', '-T') + $taskTestEnvironment + @('app', 'composer', 'test:postgres'))
@@ -116,6 +139,7 @@ try {
         'quality' {
             # Inventory runs on the host: Windows worktree .git pointers cannot be used inside Linux containers.
             & (Join-Path $PSScriptRoot 'check-secrets.ps1')
+            Start-TaskObjects
             Invoke-TaskCompose -Arguments @('exec', '-T', 'app', 'composer', 'validate', '--no-check-publish')
             Invoke-TaskCompose -Arguments @('exec', '-T', 'app', 'composer', 'check-platform-reqs')
             Invoke-TaskCompose -Arguments @('exec', '-T', 'app', 'composer', 'lint:php')
@@ -141,10 +165,12 @@ try {
             Invoke-TaskCompose -Arguments (@('exec', '-T') + $taskTestEnvironment + @('-e', 'CETAKIN_TEST_RESET=confirmed', 'app', 'php', 'scripts/dev/database.php', 'reset-test'))
         }
         'config-clear' { Invoke-TaskCompose -Arguments @('exec', '-T', 'app', 'php', 'artisan', 'config:clear') }
-        'logs' { Invoke-TaskCompose -Arguments @('logs', '--tail', '100', 'app', 'postgres') }
+        'storage-start' { Start-TaskObjects }
+        'storage-check' { Invoke-TaskCompose -Arguments @('exec', '-T', 'app', 'php', 'scripts/dev/object-store.php', 'check') }
+        'logs' { Invoke-TaskCompose -Arguments @('--profile', 'objects', 'logs', '--tail', '100', 'app', 'postgres', 'objectstore') }
         'remove' {
             if (-not $ConfirmRemoveVolumes) { throw 'Removing all local volumes requires -ConfirmRemoveVolumes. This deletes this worktree databases, dependencies and private storage.' }
-            Invoke-TaskCompose -Arguments @('--profile', 'tools', 'down', '--volumes', '--remove-orphans')
+            Invoke-TaskCompose -Arguments @('--profile', 'tools', '--profile', 'objects', 'down', '--volumes', '--remove-orphans')
         }
     }
 } finally {

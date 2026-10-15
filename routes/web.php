@@ -28,6 +28,7 @@ Route::middleware(PrivateResponse::class)->group(function (): void {
         Route::get('/requests', [RequestController::class, 'index'])->name('requests.index');
         Route::get('/requests/create', [RequestController::class, 'create'])->name('requests.create');
         Route::get('/requests/attempts/{operationId}', [RequestController::class, 'attempt'])->whereUuid('operationId')->name('requests.attempt');
+        Route::post('/requests/attempts/{operationId}/reconcile', [RequestController::class, 'reconcile'])->whereUuid('operationId')->middleware('throttle:10,1')->name('requests.reconcile');
         Route::post('/requests', [RequestController::class, 'store'])->middleware('throttle:10,1')->name('requests.store');
         Route::get('/requests/{printRequest}', [RequestController::class, 'show'])->whereUuid('printRequest')->name('requests.show');
         Route::get('/requests/{printRequest}/files/{file}', [RequestController::class, 'download'])->whereUuid(['printRequest', 'file'])->middleware('throttle:30,1')->name('requests.file');

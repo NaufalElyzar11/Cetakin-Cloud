@@ -327,6 +327,105 @@ test('session expiry gives sign-in and original-attempt guidance without disclos
     expect(screen.queryByText(/was submitted/i)).not.toBeInTheDocument();
 });
 
+test('stored-file recovery posts only the attempt reference and waits for server confirmation', () => {
+    const post = vi.spyOn(router, 'post').mockImplementation(() => {});
+    const reconcileUrl = `${checkUrl}/reconcile`;
+    render(
+        <Create
+            {...props}
+            attemptStatus="UNRESOLVED"
+            reconcileUrl={reconcileUrl}
+        />,
+    );
+    fireEvent.click(
+        screen.getByRole('button', { name: 'Check and recover stored files' }),
+    );
+    expect(post).toHaveBeenCalledWith(
+        reconcileUrl,
+        {},
+        expect.objectContaining({ preserveState: true }),
+    );
+    act(() => post.mock.calls[0][2]?.onStart?.({} as never));
+    expect(screen.getByRole('status')).toHaveTextContent(
+        'Checking the current attempt result',
+    );
+    expect(
+        screen.getByRole('button', { name: 'Check and recover stored files' }),
+    ).toBeDisabled();
+    expect(screen.getByLabelText('Design files (STL or 3MF)')).toBeDisabled();
+    act(() => {
+        post.mock.calls[0][2]?.onSuccess?.({} as never);
+        post.mock.calls[0][2]?.onFinish?.({} as never);
+    });
+    expect(screen.getByRole('status')).toHaveTextContent('no confirmed result');
+    expect(screen.queryByText(/was submitted/i)).not.toBeInTheDocument();
+});
+
+test('incomplete recovery displays a focused rejection and preserves unchanged retry inputs', () => {
+    const post = vi.spyOn(router, 'post').mockImplementation(() => {});
+    render(
+        <Create
+            {...props}
+            attemptStatus="UNRESOLVED"
+            reconcileUrl={`${checkUrl}/reconcile`}
+        />,
+    );
+    validInputs([syntheticFile('original.stl')]);
+    fireEvent.click(
+        screen.getByRole('button', { name: 'Check and recover stored files' }),
+    );
+    act(() => {
+        post.mock.calls[0][2]?.onError?.({
+            submission:
+                'Exact files are unavailable. Submission remains unresolved.',
+        });
+        post.mock.calls[0][2]?.onFinish?.({} as never);
+    });
+    expect(screen.getByRole('alert')).toHaveFocus();
+    expect(screen.getByRole('alert')).toHaveTextContent('remains unresolved');
+    expect(screen.getByLabelText('Customer')).toHaveValue('20');
+    expect(
+        screen.getByRole('list', { name: 'Selected design files' }),
+    ).toHaveTextContent('original.stl');
+    expect(
+        screen.getByRole('button', { name: 'Retry this same attempt' }),
+    ).not.toBeDisabled();
+});
+
+test('unreceived attempts expose no stored-file recovery and interrupted recovery remains unknown', () => {
+    const post = vi.spyOn(router, 'post').mockImplementation(() => {});
+    const { rerender } = render(
+        <Create
+            {...props}
+            attemptStatus="NOT_RECEIVED"
+            reconcileUrl={`${checkUrl}/reconcile`}
+        />,
+    );
+    expect(
+        screen.queryByRole('button', {
+            name: 'Check and recover stored files',
+        }),
+    ).not.toBeInTheDocument();
+    rerender(
+        <Create
+            {...props}
+            attemptStatus="UNRESOLVED"
+            reconcileUrl={`${checkUrl}/reconcile`}
+        />,
+    );
+    fireEvent.click(
+        screen.getByRole('button', { name: 'Check and recover stored files' }),
+    );
+    act(() => {
+        post.mock.calls[0][2]?.onNetworkError?.(
+            new Error('synthetic interruption'),
+        );
+        post.mock.calls[0][2]?.onFinish?.({} as never);
+    });
+    expect(screen.getByRole('alert')).toHaveTextContent('result is unknown');
+    expect(screen.queryByText(/was submitted/i)).not.toBeInTheDocument();
+});
+
 const request = {
     id: '50000000-0000-4000-8000-000000000001',
     customerId: 10,
