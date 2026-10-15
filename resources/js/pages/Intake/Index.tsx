@@ -46,8 +46,21 @@ export default function Index({
                                     {request.customerName}: {request.quantity}{' '}
                                     complete product(s)/set(s),{' '}
                                     {request.material}, {request.color}.
-                                    Submitted — awaiting manual review.
+                                    {request.status === 'DECLINED'
+                                        ? 'Declined — intake request closed.'
+                                        : request.reviewOutcome?.reviewed
+                                          ? 'Submitted — manual review recorded.'
+                                          : 'Submitted — awaiting manual review.'}
                                 </p>
+                                {request.status === 'DECLINED' &&
+                                    request.reviewOutcome?.declineReason && (
+                                        <p>
+                                            {
+                                                request.reviewOutcome
+                                                    .declineReason
+                                            }
+                                        </p>
+                                    )}
                             </li>
                         ))}
                     </ul>

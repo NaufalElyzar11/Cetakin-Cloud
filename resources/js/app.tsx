@@ -10,6 +10,8 @@ import Staff from './pages/Access/Staff';
 import RequestIndex from './pages/Intake/Index';
 import RequestCreate from './pages/Intake/Create';
 import RequestShow from './pages/Intake/Show';
+import ReviewIndex from './pages/Review/Index';
+import ReviewShow from './pages/Review/Show';
 
 void createInertiaApp({
     resolve: (name) => {
@@ -32,6 +34,10 @@ void createInertiaApp({
                 return RequestCreate;
             case 'Intake/Show':
                 return RequestShow;
+            case 'Review/Index':
+                return ReviewIndex;
+            case 'Review/Show':
+                return ReviewShow;
             default:
                 throw new Error('Unknown application page.');
         }

@@ -17,7 +17,8 @@ export default function Show({
         color: string;
         quantity: string;
         notes: string | null;
-        status: 'SUBMITTED';
+        status: 'SUBMITTED' | 'DECLINED';
+        reviewOutcome?: { reviewed: boolean; declineReason: string | null };
         submittedAt: string;
         files: SubmittedFile[];
     };
@@ -30,9 +31,22 @@ export default function Show({
                 <p>Signed in as {actor.email}.</p>
                 <IntakeNotice />
                 <p role="status">
-                    Request {request.id} was submitted. Status: Submitted —
-                    awaiting manual review.
+                    Request {request.id} was submitted. Status:{' '}
+                    {request.status === 'DECLINED'
+                        ? 'Declined — this intake request is terminal.'
+                        : request.reviewOutcome?.reviewed
+                          ? 'Submitted — manual review recorded.'
+                          : 'Submitted — awaiting manual review.'}
                 </p>
+                {request.status === 'DECLINED' &&
+                    request.reviewOutcome?.declineReason && (
+                        <section aria-labelledby="decline-outcome-heading">
+                            <h2 id="decline-outcome-heading">
+                                Decline explanation
+                            </h2>
+                            <p>{request.reviewOutcome.declineReason}</p>
+                        </section>
+                    )}
                 <p>
                     This confirms the recorded specification and exact file
                     versions. It does not confirm printability, material

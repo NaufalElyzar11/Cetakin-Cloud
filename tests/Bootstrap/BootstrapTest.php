@@ -75,7 +75,7 @@ PHP;
         }
     }
 
-    public function test_only_bootstrap_access_and_owned_intake_routes_are_exposed(): void
+    public function test_only_bootstrap_access_owned_intake_and_scoped_review_routes_are_exposed(): void
     {
         $this->assertFalse(config('inertia.devtools.enabled'));
         $this->assertFalse(config('filesystems.disks.local.serve'));
@@ -83,7 +83,7 @@ PHP;
         $routes = app('router')->getRoutes()->getRoutes();
         $uris = array_map(fn ($route) => $route->uri(), $routes);
         sort($uris);
-        $this->assertSame(['/', 'account', 'account/customers/{customer}', 'login', 'login', 'logout', 'register', 'register', 'requests', 'requests', 'requests/attempts/{operationId}', 'requests/attempts/{operationId}/reconcile', 'requests/create', 'requests/{printRequest}', 'requests/{printRequest}/files/{file}', 'staff', 'staff/responsibilities', 'staff/responsibilities/{grant}/revoke', 'up'], $uris);
+        $this->assertSame(['/', 'account', 'account/customers/{customer}', 'login', 'login', 'logout', 'register', 'register', 'requests', 'requests', 'requests/attempts/{operationId}', 'requests/attempts/{operationId}/reconcile', 'requests/create', 'requests/{printRequest}', 'requests/{printRequest}/files/{file}', 'staff', 'staff/requests', 'staff/requests/{printRequest}', 'staff/requests/{printRequest}/assignment', 'staff/requests/{printRequest}/decline', 'staff/requests/{printRequest}/files/{file}', 'staff/requests/{printRequest}/review', 'staff/responsibilities', 'staff/responsibilities/{grant}/revoke', 'up'], $uris);
 
         foreach (['_inertia/devtools/entries', '_inertia/devtools/entries/unknown', 'storage/bootstrap.txt', 'api/users', 'orders', 'quotations', 'production', 'recovery', 'staff/recovery', 'access/bootstrap-owner'] as $path) {
             $this->get('/'.$path)->assertNotFound();

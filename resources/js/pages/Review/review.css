@@ -1,0 +1,49 @@
+.review-page {
+    max-width: 48rem;
+}
+
+.review-work-list {
+    padding-left: 1.3rem;
+}
+
+.review-work-list > li,
+.review-page section {
+    margin-block: 2rem;
+}
+
+.review-work-list h2,
+.review-work-list p {
+    overflow-wrap: anywhere;
+}
+
+.review-page textarea,
+.review-page select {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 0.65rem;
+    font: inherit;
+    border: 1px solid #65717b;
+    border-radius: 0.25rem;
+    background: #fff;
+}
+
+.review-check {
+    display: flex;
+    align-items: start;
+    gap: 0.6rem;
+    margin-block: 1rem;
+}
+
+.review-check input {
+    margin-top: 0.25rem;
+}
+
+.review-page legend {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-block-end: 1rem;
+}
+
+.review-page code {
+    overflow-wrap: anywhere;
+}

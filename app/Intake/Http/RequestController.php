@@ -198,6 +198,8 @@ class RequestController
         return ['id' => $print->id, 'customerId' => $print->customer_id, 'customerName' => $customer?->name,
             'material' => $print->material, 'color' => $print->color, 'quantity' => (string) $print->quantity,
             'status' => $print->status, 'submittedAt' => $print->submitted_at->toIso8601String(),
-            'detailUrl' => route('requests.show', ['printRequest' => $print])];
+            'detailUrl' => route('requests.show', ['printRequest' => $print]),
+            'reviewOutcome' => ['reviewed' => DB::table('request_review_events')->where('request_id', $print->id)->where('kind', 'REVIEW')->exists(),
+                'declineReason' => DB::table('request_review_events')->where('request_id', $print->id)->where('kind', 'DECLINE')->value('customer_reason')]];
     }
 }
